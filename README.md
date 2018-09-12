@@ -137,7 +137,7 @@ class Swing
      @before(value="app\models\User.startTransaction")
      ```
 
-     **在执行之前开启事务支持**
+     使用场景：**在执行业务代码逻辑之前开启事务支持**
 
   4. **@after**
 
@@ -147,7 +147,7 @@ class Swing
      @after(value="app\log\InvokeLog.record")
      ```
 
-     **在接口调用之后进行日志记录**
+     使用场景：**在接口调用之后进行日志记录**
 
   5. **@success**
 
@@ -157,7 +157,7 @@ class Swing
      @success(value="app\models\User.commit")
      ```
 
-     **在方法执行成功之后提交事务**
+     使用场景：**在业务逻辑代码执行成功之后提交事务**
 
   6. **@failure**
 
@@ -167,7 +167,7 @@ class Swing
      @failure(value="app\models\User.rollback")
      ```
 
-     **在方法体返回失败的时候回滚事务**
+     使用场景：**在业务逻辑代码方法体返回失败的时候回滚事务**
 
 #### 2、方法注入AOP模式 DEMO: ####
 
