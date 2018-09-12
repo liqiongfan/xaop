@@ -5,6 +5,24 @@
 - **文档注解AOP模式**
 - **方法注入AOP模式**
 
+### 安装 ###
+
+```php
+git clone https://github.com/liqiongfan/xaop.git
+
+cd xaop
+
+/usr/local/path_to_php/bin/phpize
+
+./configure --with-php-config=/usr/local/path_to_php/bin/php-config
+    
+make -j && sudo make install
+
+echo xaop.so >> /usr/local/path_to_php/etc/php.ini
+
+echo xaop.aop_mode = 2 >> /usr/local/path_to_php/etc/php.ini
+```
+
 #### 启用对应功能扩展需要在 php.ini 文件配置指令： xaop.aop_mode，如下： ####
 
 ```ini
