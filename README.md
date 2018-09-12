@@ -48,7 +48,7 @@ class Swing
     }
     
     /**
-     *@before(value="Xaop._before")
+     *@before(value="Swing._before")
      */
     public function goodLists() {
     	echo 'goodLists';

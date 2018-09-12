@@ -86,13 +86,24 @@ static void php_xaop_init_globals(zend_xaop_globals *xaop_globals)
 {
 	xaop_globals->aop_mode = 1;
 }
+/* }}} */
 
+
+/** {{{ PHP_GINIT_FUNCTION
+*/
+PHP_GINIT_FUNCTION(xaop)
+{
+	memset(xaop_globals, 0, sizeof(*xaop_globals));
+}
 /* }}} */
 
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(xaop)
 {
+#if defined(COMPILE_DL_XAOP) && defined(ZTS)
+	ZEND_TSRMLS_CACHE_UPDATE();
+#endif
 	/* If you have INI entries, uncomment these lines
 	*/
 	REGISTER_INI_ENTRIES();
@@ -136,9 +147,6 @@ PHP_RINIT_FUNCTION(xaop)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 
-	/* Enable the AOP feature */
-	XAOP_G(enable_aop) = 1;
-
 	/* Global DI container */
 	array_init(&XAOP_G(di));
 
@@ -154,7 +162,6 @@ PHP_RINIT_FUNCTION(xaop)
 	array_init(&XAOP_G(around_func_aops));
 	XAOP_G(around_data) = NULL;
 	XAOP_G(around_type) = 0;
-	XAOP_G(aop_mode) = 1;
 
 	/* Some mvc variables */
 	XAOP_G(default_module) = zend_string_init( ZEND_STRL("index"), 0 );
