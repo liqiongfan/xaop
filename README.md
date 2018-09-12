@@ -99,7 +99,7 @@ class Swing
 
   1. **@api**
 
-     开发 **API** 推荐使用，使用本注解，直接可以向客户端返回 **JSON** 或者 **XML** 数据，只需要在修饰的方法体返回数据数据即可，注解包含两个参数：
+     开发 **API** 推荐使用，使用本注解，直接可以向客户端返回 **JSON** 或者 **XML** 数据，只需要在修饰的方法体返回数组数据即可，注解包含两个参数：
 
      **type** 与 **charset**， 如下使用：
 
@@ -108,7 +108,7 @@ class Swing
       *@api(type=JSON, charset=UTF-8)
       */
      public function newLists() {
-     	return [ ['12' => {xxx,xxx}], ['23'=>{xxx,xxx}] ];
+     	return [ ['12' => [xxx,xxx], ['23'=>[xxx,xxx] ];
      }
      ```
 
@@ -119,9 +119,7 @@ class Swing
       *@api(type=xml, charset=UTF-8)
       */
      public function newLists() {
-     
-     	return [ ['12' => {xxx,xxx}], ['23'=>{xxx,xxx}] ];
-     
+     	return [ ['12' => [xxx,xxx], ['23'=>[xxx,xxx] ];
      }
      ```
 
