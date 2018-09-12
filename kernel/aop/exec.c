@@ -39,7 +39,7 @@
 void xaop_annotation_execute(zend_execute_data *execute_data)
 {
     IN_XAOP_OPLINE
-    zval *this          = getThis();
+    zval *that          = getThis();
     zend_function *func = execute_data->func;
 
     zval class_annotations, function_annotations, charset, retval/* return value */;
@@ -53,9 +53,8 @@ void xaop_annotation_execute(zend_execute_data *execute_data)
     
     /* Current in Class calling. */
     IN_CLASS_MODE(func)
-
     /* Parsing the PHPDoc about the class & the function */
-    parse_phpdoc( GET_OBJECT_PHPDOC(this), &class_annotations );
+    parse_phpdoc( GET_OBJECT_PHPDOC(that), &class_annotations );
     parse_phpdoc( GET_FUNCTI_PHPDOC(func), &function_annotations );
 
     IN_ARRAY_CONDITION(class_annotations)
@@ -117,7 +116,7 @@ void xaop_annotation_execute(zend_execute_data *execute_data)
                                 return ;
                             }
                             xaop_get_object_from_di(&annotation_obj, ZSTR_VAL(a_name), annotation_ce);
-                            zend_call_method_with_2_params(&annotation_obj, Z_OBJCE(annotation_obj), NULL, "input", &retval, this, a_value);
+                            zend_call_method_with_2_params(&annotation_obj, Z_OBJCE(annotation_obj), NULL, "input", &retval, that, a_value);
                         }
                     } ZEND_HASH_FOREACH_END();
                 IN_ARRAY_END

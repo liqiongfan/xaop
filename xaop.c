@@ -44,7 +44,7 @@ XAOP_INIT(xaop);
  */
 /* Remove comments and fill if you need to have entries in php.ini */
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("xaop.aop_mode", "1", PHP_INI_ALL, OnUpdateLong, aop_mode, zend_xaop_globals, xaop_globals)
+    STD_PHP_INI_ENTRY("xaop.aop_mode", "1", PHP_INI_SYSTEM, OnUpdateLong, aop_mode, zend_xaop_globals, xaop_globals)
 PHP_INI_END()
 
 /* }}} */
@@ -96,21 +96,15 @@ PHP_MINIT_FUNCTION(xaop)
 	/* If you have INI entries, uncomment these lines
 	*/
 	REGISTER_INI_ENTRIES();
-
-	switch ( XAOP_G(aop_mode) ) {
-		case 1:
-			/* Normal mode for AOP mode */
-			break;
-		case 2:
-			zend_execute_ex = xaop_annotation_execute;
-			break;
-		case 3:
-			zend_execute_ex = xaop_execute;
-			zend_execute_internal = xaop_execute_internal;
-			break;
-		default: 
-			php_error_docref(0, E_ERROR, "xaop.aop_mode wrong.");
-			return FAILURE;
+	
+	if ( 2 == INI_INT("xaop.aop_mode") ) {
+		zend_execute_ex = xaop_annotation_execute;
+	} else if ( 3 == INI_INT("xaop.aop_mode") ) {
+		zend_execute_ex = xaop_execute;
+		zend_execute_internal = xaop_execute_internal;
+	} else if ( 1 != INI_INT("xaop.aop_mode") ) {
+		php_error_docref(0, E_ERROR, "xaop.aop_mode wrong.");
+		return FAILURE;
 	}
 	
 	loader_init();
@@ -160,6 +154,7 @@ PHP_RINIT_FUNCTION(xaop)
 	array_init(&XAOP_G(around_func_aops));
 	XAOP_G(around_data) = NULL;
 	XAOP_G(around_type) = 0;
+	XAOP_G(aop_mode) = 1;
 
 	/* Some mvc variables */
 	XAOP_G(default_module) = zend_string_init( ZEND_STRL("index"), 0 );
@@ -183,6 +178,9 @@ PHP_RINIT_FUNCTION(xaop)
  */
 PHP_RSHUTDOWN_FUNCTION(xaop)
 {
+#if defined(COMPILE_DL_XAOP) && defined(ZTS)
+	ZEND_TSRMLS_CACHE_UPDATE();
+#endif
 	zend_array_destroy(Z_ARRVAL(XAOP_G(di)));
 	zend_array_destroy(Z_ARRVAL(XAOP_G(aliases)));
 	zend_array_destroy(Z_ARRVAL(XAOP_G(before_aops)));
