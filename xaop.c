@@ -102,6 +102,7 @@ PHP_GINIT_FUNCTION(xaop)
 PHP_MINIT_FUNCTION(xaop)
 {
 #if defined(COMPILE_DL_XAOP) && defined(ZTS)
+	ZEND_INIT_MODULE_GLOBALS(xaop, NULL, NULL);
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
 	/* If you have INI entries, uncomment these lines
