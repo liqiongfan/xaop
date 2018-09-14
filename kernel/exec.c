@@ -157,10 +157,10 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
 
 XAOP_C_LABEL( release_memory )
     
-    zval_ptr_dtor( &charset );
     zval_ptr_dtor( &func_return );
     
     ARRAY_MODE( class_annos ) {
+        zval_ptr_dtor( &charset );
         zend_array_destroy( Z_ARRVAL( class_annos ) );
     }
     ARRAY_MODE( function_annos ) {
