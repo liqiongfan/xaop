@@ -15,13 +15,34 @@
  | Author: Josin https://www.supjos.cn                                  |
  +----------------------------------------------------------------------+
  */
-
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_xaop.h"
-#include "kernel/common/helper_lib.h"
-#include "kernel/mvc/session.h"
+#include "kernel/interface/annotation.h"
+
+ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(annotation_input), 0, 0, 2)
+   ZEND_ARG_INFO(0, object)
+   ZEND_ARG_INFO(0, annotations)
+ZEND_END_ARG_INFO()
+
+
+XAOP_METHOD(Annotation, input)
+{
+
+}
+
+XAOP_FUNCTIONS(annotation)
+    XAOP_AB_ME(Annotation, input, arginfo_annotation_input)
+XAOP_FUNCTIONS_END()
+
+XAOP_INIT(annotation)
+{
+    zend_class_entry ce;
+    INIT_CLASS_ENTRY(ce, XAOP_PREFIX "Annotations", annotation_functions);
+    annotation_ce = zend_register_internal_interface(&ce);
+}
+
 
 /*
  * Local variables:

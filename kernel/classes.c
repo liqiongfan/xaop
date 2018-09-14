@@ -15,24 +15,12 @@
  | Author: Josin https://www.supjos.cn                                  |
  +----------------------------------------------------------------------+
  */
-
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_xaop.h"
-#include "kernel/annotation/annotation.h"
 
-XAOP_FUNCTIONS(annoation)
-    XAOP_AB_ME(Annotation, input, NULL)
-XAOP_FUNCTIONS_END()
-
-XAOP_INIT(annotation)
-{
-    zend_class_entry ce;
-    INIT_CLASS_ENTRY(ce, XAOP_PREFIX "Annotation", NULL);
-    xaop_annotation_ce = zend_register_internal_interface(&ce);
-}
-
+zend_class_entry *annotation_ce;
 /*
  * Local variables:
  * tab-width: 4

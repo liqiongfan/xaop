@@ -1,6 +1,6 @@
 /*
   +----------------------------------------------------------------------+
-  | Extreme AOP extension for PHP 7                                      |
+  | PHP Version 7                                                        |
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
@@ -12,7 +12,7 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author: Josin https://www.supjos.cn                                  |
+  | Author:                                                              |
   +----------------------------------------------------------------------+
 */
 
@@ -24,7 +24,7 @@
 extern zend_module_entry xaop_module_entry;
 #define phpext_xaop_ptr &xaop_module_entry
 
-#define PHP_XAOP_VERSION "0.1.12"
+#define PHP_XAOP_VERSION "0.1.0" /* Replace with version number for your extension */
 
 #ifdef PHP_WIN32
 #	define PHP_XAOP_API __declspec(dllexport)
@@ -38,36 +38,22 @@ extern zend_module_entry xaop_module_entry;
 #include "TSRM.h"
 #endif
 
+/**
+ * Some macros for the kernel use.
+ */
+#define NORMAL_AOP 1
+#define ANNOTATION_AOP 2
+#define INJECTION_AOP  3
+
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
 */
 ZEND_BEGIN_MODULE_GLOBALS(xaop)
-    zend_bool enable_aop;
-    zval di;
-    zval aliases;
-    zval pdo_object;
-
-    zval before_func_aops;            /* All aops without class env. */
-    zval after_func_aops;             /* All aops without class env. */
-    zval around_func_aops;            /* All aops without class env. */
-    zval before_aops;                 /* All injected aop functions */
-    zval after_aops;                  /* All injected aop functions */
-    zval around_aops;                 /* All injected aop functions */
-    zend_execute_data *around_data;   /* The current calling function opcodes for running. */
-    int around_type;                  /* around type */
-    int aop_mode;                     /* aop mode for use */
-
-    zend_string *default_module;      /* index */
-    zend_string *default_controller;  /* index */
-    zend_string *default_action;      /* index */
-    zval default_modules;             /* default [ 'index' ] */
-    int url_mode;                     /* 0: GET 1: PATH 2:AUTO */
-    zend_string *url_get_str;         /* default: _url */
-    zend_string *view_suffix;         /* default html */
-    zend_string *url_suffix;          /* default html */
-    zend_string *application_dir;     /* default `.` */
-    zend_string *default_namespace;   /* default `app` */
+	zval di;					/* Di container */
+    char aspect;                /* Aspect mode or not, 1 for aspect 0 for not. */
+    char overloaded;            /* overload mode or not 1: overload 0: normal */
+	char aop_mode;              /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
 ZEND_END_MODULE_GLOBALS(xaop)
 
 /* Always refer to the globals in your function as XAOP_G(variable).
@@ -80,13 +66,11 @@ ZEND_END_MODULE_GLOBALS(xaop)
 ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
-/* Every XAOP_G calling need this macro. */
-extern ZEND_DECLARE_MODULE_GLOBALS(xaop);
+ZEND_EXTERN_MODULE_GLOBALS(xaop)
 
-/* Check whether the method is exist in object or not. the method_name was `char *` */
 #define XAOP_METHOD_EXISTS(object, method_name) ( ( Z_OBJ_HT_P(object)->get_method(&Z_OBJ_P(object), strpprintf(0, "%s", ZEND_STRL(method_name)), NULL)) )
 #define XAOP_C_LABEL(name)         name :
-#define XAOP_C_TO(name)            goto name;  
+#define XAOP_C_TO(name)            goto name;
 #define XAOP_ME                    PHP_ME
 #define XAOP_AB_ME                 PHP_ABSTRACT_ME
 #define XAOP_METHOD                PHP_METHOD
@@ -96,8 +80,10 @@ extern ZEND_DECLARE_MODULE_GLOBALS(xaop);
 #define XAOP_FUNCTIONS(name)       static const zend_function_entry name##_functions[] = {
 #define XAOP_FUNCTIONS_END()       PHP_FE_END };
 #define XAOP_PREFIX                "Xaop\\"
-#define XAOP_INFO(type, info...)   php_error_docref(NULL, type, ##info)
+#define XAOP_INFO(type, info...)   php_error_docref(0, type, ##info)
 #define XAOP_ENTRY_OBJ(obj)        (Z_OBJCE_P(obj)),(obj)
+
+XAOP_INIT(annotation);
 
 #endif	/* PHP_XAOP_H */
 

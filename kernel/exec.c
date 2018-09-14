@@ -1,0 +1,178 @@
+/*
+ +----------------------------------------------------------------------+
+ | Extreme AOP extension for PHP 7                                      |
+ +----------------------------------------------------------------------+
+ | Copyright (c) 1997-2018 The PHP Group                                |
+ +----------------------------------------------------------------------+
+ | This source file is subject to version 3.01 of the PHP license,      |
+ | that is bundled with this package in the file LICENSE, and is        |
+ | available through the world-wide-web at the following url:           |
+ | http://www.php.net/license/3_01.txt                                  |
+ | If you did not receive a copy of the PHP license and are unable to   |
+ | obtain it through the world-wide-web, please send a note to          |
+ | license@php.net so we can mail you a copy immediately.               |
+ +----------------------------------------------------------------------+
+ | Author: Josin https://www.supjos.cn                                  |
+ +----------------------------------------------------------------------+
+ */
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
+#include "php_xaop.h"
+#include "kernel/exec.h"
+#include "kernel/parsing.h"
+#include "kernel/helper.h"
+#include "ext/standard/php_string.h"
+#include "Zend/zend_smart_str.h"
+#include "ext/json/php_json.h"
+#include "main/SAPI.h"
+#include "Zend/zend_interfaces.h"
+#include "kernel/interface/annotation.h"
+
+/**
+ * To execute the zend_op_array to instead of the default one.
+ * @param execute_data  current op_array data need to be run.
+ */
+void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
+{
+    zval          *context = getThis();
+    zend_function *func    = execute_data->func;
+    
+    XAOP_G( aspect ) = 0;
+    
+    int  output_type  = 0;
+    zval charset, func_return, class_annos, function_annos;
+    zval *before_zval = NULL, *after_zval = NULL, *success_zval = NULL, *failure_zval = NULL, *disable_zval = NULL, *api_zval = NULL;
+    
+    ZVAL_NULL( &class_annos );
+    
+    IN_ANNOTATION_MODE( context, func ) {
+        
+        parse_phpdoc( GET_CLASS_DOC( context ), &class_annos );
+        parse_phpdoc( GET_FUNCTION_DOC( func ), &function_annos );
+        
+        ARRAY_MODE( class_annos ) {
+            
+            zval *annotations = zend_hash_str_find( Z_ARRVAL( class_annos ), ZEND_STRL( ANNOTATIONS_TEXT ) );
+            ARRAY_P_MODE( annotations ) {
+                
+                zval *aspect = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( ASPECT_TEXT ) );
+                
+                if ( aspect ) {
+                    
+                    XAOP_G( aspect ) = 1;
+                    
+                    ARRAY_MODE( function_annos ) {
+                        
+                        annotations = zend_hash_str_find( Z_ARRVAL( function_annos ), ZEND_STRL( ANNOTATIONS_TEXT ) );
+                        
+                        ARRAY_P_MODE( annotations ) {
+                            
+                            disable_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( DISABLE_TEXT ) );
+                            if ( disable_zval ) return;
+                            
+                            before_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( BEFORE_TEXT ) );
+                            invoke_kernel_aop_method( before_zval );
+                            
+                            api_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( API_TEXT ) );
+                            xaop_api_handler( api_zval, &output_type, &charset );
+                            
+                            after_zval   = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( AFTER_TEXT ) );
+                            success_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( SUCCESS_TEXT ) );
+                            failure_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( FAILURE_TEXT ) );
+                            
+                            /* for other annotations */
+                            zend_string *annotation_name;
+                            zval        *annotation_value;
+                            ZEND_HASH_FOREACH_STR_KEY_VAL( Z_ARRVAL_P( annotations ), annotation_name, annotation_value )
+                                    {
+                                        if ( zend_string_equals_literal_ci( annotation_name, API_TEXT ) ||
+                                             zend_string_equals_literal_ci( annotation_name, DISABLE_TEXT ) ||
+                                             zend_string_equals_literal_ci( annotation_name, BEFORE_TEXT ) ||
+                                             zend_string_equals_literal_ci( annotation_name, AFTER_TEXT ) ||
+                                             zend_string_equals_literal_ci( annotation_name, SUCCESS_TEXT ) ||
+                                             zend_string_equals_literal_ci( annotation_name, FAILURE_TEXT ) ) {
+                                            continue;
+                                        }
+                                        zend_class_entry *annotation_entry = zend_lookup_class( zend_string_tolower( annotation_name ) );
+                                        if ( !annotation_entry ) {
+                                            XAOP_INFO( E_ERROR, "Xaop can't found the Annotation class: `%s`.", ZSTR_VAL
+                                                ( annotation_name ) );
+                                            
+                                            XAOP_C_TO( release_memory )
+                                        }
+                                        if ( !instanceof_function( annotation_entry, annotation_ce ) ) {
+                                            XAOP_INFO( E_ERROR, "Annotation class must implements the "
+                                                XAOP_PREFIX
+                                                "Annotations" );
+                                            XAOP_C_TO( release_memory )
+                                        }
+                                        zval annotation_obj, input_return;
+                                        xaop_get_object_from_di( &annotation_obj, ZSTR_VAL( annotation_name ), annotation_entry );
+                                        zend_call_method_with_2_params( &annotation_obj, annotation_entry, NULL, "input", &input_return, context,
+                                                                        annotation_value );
+                                        zval_ptr_dtor( &input_return );
+                                        zval_ptr_dtor( &annotation_obj );
+                                    } ZEND_HASH_FOREACH_END();
+                        } /* function's annotations */
+                    } /* function annotations */
+                } /* in aspect mode */
+            } /* class's annotations */
+        } /* class annotations */
+    } /* end for annotation mode */
+    
+    EX( return_value )     = &func_return;
+    execute_ex( execute_data );
+    
+    ARRAY_MODE( func_return ) {
+        if ( OUTPUT_JSON == output_type ) {
+            smart_str http_body = { 0 };
+            php_json_encode( &http_body, &func_return, PHP_JSON_UNESCAPED_UNICODE );
+            smart_str_0( &http_body );
+            php_write( ZSTR_VAL( http_body.s ), ZSTR_LEN( http_body.s ) );
+            smart_str_free( &http_body );
+        } else if ( OUTPUT_XML == output_type ) {
+            smart_str http_body = { 0 };
+            smart_str_appends( &http_body, "<?xml version=\"1.0\" encoding=\"" );
+            smart_str_appends( &http_body, Z_STRVAL( charset ) );
+            smart_str_appends( &http_body, "\"?>" );
+            smart_str_appends( &http_body, "<root>" );
+            xaop_xml_data( &func_return, &http_body );
+            smart_str_appends( &http_body, "</root>" );
+            smart_str_0( &http_body );
+            php_write( ZSTR_VAL( http_body.s ), ZSTR_LEN( http_body.s ) );
+            smart_str_free( &http_body );
+        }
+    }
+    
+    if ( ( Z_TYPE( func_return ) == IS_TRUE || Z_TYPE( func_return ) == IS_ARRAY ) ) {
+        invoke_kernel_aop_method( success_zval );
+    } else if ( ( Z_TYPE( func_return ) == IS_FALSE || Z_TYPE( func_return ) == IS_NULL ) ) {
+        invoke_kernel_aop_method( failure_zval );
+    }
+    
+    ARRAY_P_MODE( after_zval ) {
+        invoke_kernel_aop_method( after_zval );
+    }
+
+XAOP_C_LABEL( release_memory )
+    
+    zval_ptr_dtor( &charset );
+    zval_ptr_dtor( &func_return );
+    
+    ARRAY_MODE( class_annos ) {
+        zend_array_destroy( Z_ARRVAL( class_annos ) );
+    }
+    ARRAY_MODE( function_annos ) {
+        zend_array_destroy( Z_ARRVAL( function_annos ) );
+    }
+}
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */

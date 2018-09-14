@@ -15,14 +15,12 @@
  | Author: Josin https://www.supjos.cn                                  |
  +----------------------------------------------------------------------+
  */
+#ifndef ANNOTATION_H
+#define ANNOTATION_H
 
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_xaop.h"
-#include "kernel/common/helper_lib.h"
-#include "kernel/mvc/view.h"
+extern zend_class_entry *annotation_ce;
 
+#endif //ANNOTATION_H
 /*
  * Local variables:
  * tab-width: 4

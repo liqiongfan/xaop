@@ -22,13 +22,13 @@
 #include "php_xaop.h"
 #include "zend_smart_str.h"
 #include "ext/standard/php_string.h"
-#include "kernel/common/anno_parsing.h"
-#include "kernel/common/helper_lib.h"
+#include "kernel/parsing.h"
+#include "kernel/helper.h"
 
 /**
  * {{{ NOTE: the second parameter must be allocated memory to store the result
- * otherwise it will cause Segement fault.
- * This function parse the doc into serval line and parse it to the function `parse_line_phpdoc`
+ * otherwise it will cause segment fault.
+ * This function parse the doc into multi-line and parse it to the function `parse_line_phpdoc`
  * Parse the PHPDoc and store the result into the `result` parameter
  */
 void parse_phpdoc(zend_string *phpdoc, zval *result)
@@ -36,11 +36,12 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
     if ( Z_TYPE_P(result) != IS_ARRAY ) {
         array_init(result);
     }
-
+    
     smart_str line_doc = { 0 };
     const char *doc = !phpdoc ? NULL : ZSTR_VAL(phpdoc), *c_r, *c_e;
     zval annotations, ret;
     array_init(&annotations);
+    
 
     int pos, l_s = 0, pos_e, body_s = 0, body_e = 0, phpdoc_len = !phpdoc ? 0 : ZSTR_LEN(phpdoc);
 

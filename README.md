@@ -1,9 +1,9 @@
-# Xaop PHP高性能的AOP扩展-alpha
+# Xaop PHP高性能的AOP扩展 beta
 
 ### 功能特色 ###
 
 - **文档注解AOP模式**
-- **方法注入AOP模式**
+- **方法注入AOP模式**(开发中)
 
 ### 安装 ###
 
@@ -30,7 +30,7 @@ echo xaop.aop_mode = 2 >> /usr/local/path_to_php/etc/php.ini
 ; 1 不启用AOP
 ; 2 文档注解AOP模式
 ; 3 方法注入AOP模式
-xaop.aop_mode = 3
+xaop.aop_mode = 2
 ```
 
 #### 1、文档注解AOP模式 DEMO: ####
@@ -186,80 +186,3 @@ class Swing
      ```
 
      使用场景：**在业务逻辑代码方法体返回失败的时候回滚事务**
-
-#### 2、方法注入AOP模式 DEMO: ####
-
-仅支持 **前置注入**与 **后置注入**模式，环绕模式正在开发：
-
-```php
-<?php
-
-class Swing
-{
-    public function _before() {
-        echo '_before';
-    }
-    
-    public function getLists() {
-        echo 'getLists';
-    }
-}
-
-// 在所有的 Swing类中，以 getLists开头的方法调用的时候都会调用 Swing类的 _before 方法
-\Xaop::addBeforeAop(Swing::class, "getLists*", [ Swing::class, '_before' ]);
-
-// 后置注入
-// \Xaop::addAfterAop(Swing::class, "getLists*", [ Swing::class, '_after' ]);
-```
-
-调用即可：
-
-```php
-$swing = new Swing();
-$swing->getLists();
-
-// 输出如下：
-_before getLists
-```
-
-**Xaop APIs**
-
-##### 前置注入：addBeforeAop #####
-
-public function **addBeforeAop**($className, $funtionName, $callback = [ ])
-
-##### 后置注入：addAfterAop #####
-
-public function **addAfterAop**($className, $funtionName, $callback = [ ])
-
-**注意：**
-
-**$className与$functionName支持模糊匹配模式，使用 * 代替任意字符，并且只能存在一个 * 符号，存在多个 * 符号会报错，如下示例：**
-
-```php
-<?php
-
-namespace app;
-
-class Swing
-{
-    public function _before() {
-        echo 'before';
-    }
-    
-    public function views() {
-        echo 'views';
-    }
-}
-
-// 给 Swing 类的 views 方法增加前置注入
-\Xaop::addBeforeAop(Swing::class, 'views', [ Swing::class, '_before' ] );
-
-// 给 Swing 类中，以 v 开头的方法增加前置注入
-\Xaop::addBeforeAop(Swing::class, 'v*', [ Swing::class, '_before' ]);
-
-// 给以 app 开头的命名空间并且方法以 v 开头的增加前置注入
-\Xaop::addBeforeAop("app*", 'v*', [ Swing::class, '_before' ]);
-```
-
-[警告⚠️]：如果 **$functionName** 仅仅存在 字符 `*`， 此时系统会直接终止，由于 `*` 匹配任何方法，当你匹配方法的时候，如果仅仅使用 `*` 去匹配任何方法，那么会造成**闭合调用**(**调用本方法之前都调用本方法**)，造成PHP内核终止。之所以保留单个 `*` 字符，是因为 **$className** 可以使用 单个 `*` 去匹配任何类或者命名空间。
