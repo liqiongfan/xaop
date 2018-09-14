@@ -51,9 +51,9 @@ extern zend_module_entry xaop_module_entry;
 */
 ZEND_BEGIN_MODULE_GLOBALS(xaop)
 	zval di;					/* Di container */
-    char aspect;                /* Aspect mode or not, 1 for aspect 0 for not. */
-    char overloaded;            /* overload mode or not 1: overload 0: normal */
-	char aop_mode;              /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
+    int aspect;                 /* Aspect mode or not, 1 for aspect 0 for not. */
+    int overloaded;             /* overload mode or not 1: overload 0: normal */
+	int aop_mode;               /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
 ZEND_END_MODULE_GLOBALS(xaop)
 
 /* Always refer to the globals in your function as XAOP_G(variable).
