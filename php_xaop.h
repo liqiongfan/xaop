@@ -54,6 +54,7 @@ ZEND_BEGIN_MODULE_GLOBALS(xaop)
     int aspect;                 /* Aspect mode or not, 1 for aspect 0 for not. */
     int overloaded;             /* overload mode or not 1: overload 0: normal */
 	int aop_mode;               /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
+	char *method_prefix;		/* The AOP method start with will be excluded */
 ZEND_END_MODULE_GLOBALS(xaop)
 
 /* Always refer to the globals in your function as XAOP_G(variable).

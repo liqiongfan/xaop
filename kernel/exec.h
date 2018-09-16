@@ -20,7 +20,9 @@
 
 #define GET_CLASS_DOC(object) Z_OBJCE_P(object)->info.user.doc_comment
 #define GET_FUNCTION_DOC(func) (func)->op_array.doc_comment
-#define IN_ANNOTATION_MODE(context, func) if ( (context) && (GET_CLASS_DOC(context)) && (func) && GET_FUNCTION_DOC(func) )
+#define IN_ANNOTATION_MODE(context, func) if ( (context) && (GET_CLASS_DOC(context)) && (func) && GET_FUNCTION_DOC(func) && \
+( XAOP_G(method_prefix)[0] == '\0' || strncmp( ZSTR_VAL((func)->op_array.function_name), XAOP_G(method_prefix), strlen(XAOP_G(method_prefix))\
+)) )
 #define INVOKE_METHOD_CONTEXT() if ( 0 == XAOP_G( overloaded ) )
 #define INIT_CONTEXT_FOR_CALLING() XAOP_G( overloaded ) = 1;
 #define INIT_CONTEXT_FOR_CALLING_END() XAOP_G( overloaded ) = 0;

@@ -2,8 +2,24 @@
 
 ### 功能特色 ###
 
-- **文档注解AOP模式**
+- **基于对象的文档注解AOP模式**
 - **方法注入AOP模式**(开发中)
+
+#### 框架 ####
+
+- **Yaf**
+- **CSpeed**
+- **Xannotation**
+
+#### 系统指令及其含义 ####
+
+- **xaop.method_prefix**
+
+  AOP文档注解需要排除的方法前缀，也就是说如果方法以此前缀开头，那么就会跳过AOP解析
+
+- **xaop.aop_mode**
+
+  AOP工作模式，可选值： 1 | 2 | 3
 
 ### 安装 ###
 
@@ -17,10 +33,6 @@ cd xaop
 ./configure --with-php-config=/usr/local/path_to_php/bin/php-config
     
 make -j && sudo make install
-
-echo xaop.so >> /usr/local/path_to_php/etc/php.ini
-
-echo xaop.aop_mode = 2 >> /usr/local/path_to_php/etc/php.ini
 ```
 
 #### 启用对应功能扩展需要在 php.ini 文件配置指令： xaop.aop_mode，如下： ####

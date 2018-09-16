@@ -93,36 +93,36 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
                             zend_string *annotation_name;
                             zval        *annotation_value;
                             ZEND_HASH_FOREACH_STR_KEY_VAL( Z_ARRVAL_P( annotations ), annotation_name, annotation_value )
-                                    {
-                                        if ( zend_string_equals_literal_ci( annotation_name, API_TEXT ) ||
-                                             zend_string_equals_literal_ci( annotation_name, DISABLE_TEXT ) ||
-                                             zend_string_equals_literal_ci( annotation_name, BEFORE_TEXT ) ||
-                                             zend_string_equals_literal_ci( annotation_name, AFTER_TEXT ) ||
-                                             zend_string_equals_literal_ci( annotation_name, SUCCESS_TEXT ) ||
-                                             zend_string_equals_literal_ci( annotation_name, FAILURE_TEXT ) ||
-                                             zend_string_equals_literal_ci( annotation_name, DEPRECATED_TEXT ) ) {
-                                            continue;
-                                        }
-                                        zend_class_entry *annotation_entry = zend_lookup_class(
-                                            zend_string_tolower( annotation_name ) );
-                                        if ( !annotation_entry ) {
-                                            XAOP_INFO( E_ERROR, "Xaop can't found the Annotation class: `%s`.", ZSTR_VAL
-                                                ( annotation_name ) );
-                                            
-                                            XAOP_C_TO( release_memory )
-                                        }
-                                        if ( !instanceof_function( annotation_entry, annotation_ce ) ) {
-                                            XAOP_INFO( E_ERROR, "Annotation class must implements the "
-                                                XAOP_PREFIX
-                                                "Annotations" );
-                                            XAOP_C_TO( release_memory )
-                                        }
-                                        zval annotation_obj, f_return;
-                                        xaop_get_object_from_di( &annotation_obj, ZSTR_VAL( annotation_name ), annotation_entry );
-                                        zend_call_method_with_2_params( context, annotation_entry, NULL, "input",
-                                                                        &f_return, context, annotation_value );
-                                        zval_ptr_dtor(&f_return);
-                                    } ZEND_HASH_FOREACH_END();
+                            {
+                                if ( zend_string_equals_literal_ci( annotation_name, API_TEXT ) ||
+                                     zend_string_equals_literal_ci( annotation_name, DISABLE_TEXT ) ||
+                                     zend_string_equals_literal_ci( annotation_name, BEFORE_TEXT ) ||
+                                     zend_string_equals_literal_ci( annotation_name, AFTER_TEXT ) ||
+                                     zend_string_equals_literal_ci( annotation_name, SUCCESS_TEXT ) ||
+                                     zend_string_equals_literal_ci( annotation_name, FAILURE_TEXT ) ||
+                                     zend_string_equals_literal_ci( annotation_name, DEPRECATED_TEXT ) ) {
+                                    continue;
+                                }
+                                zend_class_entry *annotation_entry = zend_lookup_class(
+                                    zend_string_tolower( annotation_name ) );
+                                if ( !annotation_entry ) {
+                                    XAOP_INFO( E_ERROR, "Xaop can't found the Annotation class: `%s`.", ZSTR_VAL
+                                        ( annotation_name ) );
+                                    
+                                    XAOP_C_TO( release_memory )
+                                }
+                                if ( !instanceof_function( annotation_entry, annotation_ce ) ) {
+                                    XAOP_INFO( E_ERROR, "Annotation class must implements the "
+                                        XAOP_PREFIX
+                                        "Annotations" );
+                                    XAOP_C_TO( release_memory )
+                                }
+                                zval annotation_obj, f_return;
+                                xaop_get_object_from_di( &annotation_obj, ZSTR_VAL( annotation_name ), annotation_entry );
+                                zend_call_method_with_2_params( context, annotation_entry, NULL, "input",
+                                                                &f_return, context, annotation_value );
+                                Z_TRY_DELREF(f_return);
+                            } ZEND_HASH_FOREACH_END();
                         } /* function's annotations */
                     } /* function annotations */
                 } /* in aspect mode */
@@ -170,9 +170,14 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
     }
 
 XAOP_C_LABEL( release_memory )
-
+    
+    Z_TRY_DELREF( func_return );
+    
+    if( Z_TYPE(charset) == IS_STRING ) {
+        Z_TRY_DELREF( charset );
+    }
+    
     ARRAY_MODE( class_annos ) {
-        zval_ptr_dtor( &charset );
         zend_array_destroy( Z_ARRVAL( class_annos ) );
     }
     ARRAY_MODE( function_annos ) {

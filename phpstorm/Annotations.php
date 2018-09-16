@@ -17,7 +17,7 @@ namespace Xaop;
  * Every annotation class must implement the Annotation interface to do the annotation job
  * such as the following one:
  *
- * class Tag implement Xaop\Annotation {
+ * class Tag implement Xaop\Annotations {
  *
  *     public function input($object, $annotations) {
  *         foreach($annotations as $key => $val) {
@@ -27,12 +27,12 @@ namespace Xaop;
  * }
  * @package Xaop
  */
-interface Annotation {
+interface Annotations {
 
     /**
      * Input the values from the annotations
-     * @param object|string $objectOrName   In function mode. This means the calling object otherwise the Class name
-     * @param array $annotations    The annotations from the outside class or function
+     * @param object|string $object   In function mode. This means the calling object otherwise the Class name
+     * @param array $annotations      The annotations from the outside class or function
      */
-    public function input($objectOrName, $annotations);
+    public function input($object, $annotations);
 }

@@ -38,6 +38,7 @@ static int le_xaop;
  */
 PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("xaop.aop_mode", "1", PHP_INI_ALL, OnUpdateLong, aop_mode, zend_xaop_globals, xaop_globals)
+	STD_PHP_INI_ENTRY("xaop.method_prefix", "", PHP_INI_ALL, OnUpdateString, method_prefix, zend_xaop_globals, xaop_globals)
 PHP_INI_END()
 /* }}} */
 
@@ -59,6 +60,7 @@ PHP_FUNCTION(get_xaop_version)
 static void php_xaop_init_globals(zend_xaop_globals *xaop_globals)
 {
     xaop_globals->aop_mode = 1;
+    xaop_globals->method_prefix="";
 }
 /* }}} */
 
