@@ -43,7 +43,8 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
     
     int  output_type  = 0;
     zval charset, func_return, class_annos, function_annos;
-    zval *before_zval = NULL, *after_zval = NULL, *success_zval = NULL, *failure_zval = NULL, *disable_zval = NULL, *api_zval = NULL, *deprecated_zval = NULL;
+    zval *before_zval = NULL, *after_zval = NULL, *success_zval = NULL, *failure_zval = NULL, *disable_zval = NULL,
+         *api_zval    = NULL, *deprecated_zval = NULL;
     
     ZVAL_NULL( &class_annos );
     ZVAL_NULL( &function_annos );
@@ -79,21 +80,20 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
                             api_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( API_TEXT ) );
                             xaop_api_handler( api_zval, &output_type, &charset );
                             
-                            after_zval      = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( AFTER_TEXT ) );
+                            after_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( AFTER_TEXT ) );
                             success_zval    = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( SUCCESS_TEXT ) );
                             failure_zval    = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( FAILURE_TEXT ) );
                             deprecated_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( DEPRECATED_TEXT ) );
                             if ( deprecated_zval ) {
                                 XAOP_INFO( E_DEPRECATED, "Function %s%s%s() is deprecated",
-                                            func->common.scope ? ZSTR_VAL( func->common.scope->name ) : "",
-                                            func->common.scope ? "::" : "", ZSTR_VAL( func->common.function_name ) );
+                                           func->common.scope ? ZSTR_VAL( func->common.scope->name ) : "",
+                                           func->common.scope ? "::" : "", ZSTR_VAL( func->common.function_name ) );
                             }
                             
                             /* for other annotations */
                             zend_string *annotation_name;
                             zval        *annotation_value;
-                            ZEND_HASH_FOREACH_STR_KEY_VAL( Z_ARRVAL_P( annotations ), annotation_name, annotation_value )
-                            {
+                            ZEND_HASH_FOREACH_STR_KEY_VAL( Z_ARRVAL_P( annotations ), annotation_name, annotation_value ) {
                                 if ( zend_string_equals_literal_ci( annotation_name, API_TEXT ) ||
                                      zend_string_equals_literal_ci( annotation_name, DISABLE_TEXT ) ||
                                      zend_string_equals_literal_ci( annotation_name, BEFORE_TEXT ) ||
@@ -103,25 +103,20 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
                                      zend_string_equals_literal_ci( annotation_name, DEPRECATED_TEXT ) ) {
                                     continue;
                                 }
-                                zend_class_entry *annotation_entry = zend_lookup_class(
-                                    zend_string_tolower( annotation_name ) );
+                                zend_class_entry
+                                    *annotation_entry = zend_lookup_class( zend_string_tolower( annotation_name ) );
                                 if ( !annotation_entry ) {
-                                    XAOP_INFO( E_ERROR, "Xaop can't found the Annotation class: `%s`.", ZSTR_VAL
-                                        ( annotation_name ) );
-                                    
+                                    XAOP_INFO( E_ERROR, "Xaop can't found the Annotation class: `%s`.", ZSTR_VAL( annotation_name ) );
                                     XAOP_C_TO( release_memory )
                                 }
                                 if ( !instanceof_function( annotation_entry, annotation_ce ) ) {
-                                    XAOP_INFO( E_ERROR, "Annotation class must implements the "
-                                        XAOP_PREFIX
-                                        "Annotations" );
+                                    XAOP_INFO( E_ERROR, "Annotation class must implements the " XAOP_PREFIX "Annotations" );
                                     XAOP_C_TO( release_memory )
                                 }
                                 zval annotation_obj, f_return;
                                 xaop_get_object_from_di( &annotation_obj, ZSTR_VAL( annotation_name ), annotation_entry );
-                                zend_call_method_with_2_params( context, annotation_entry, NULL, "input",
-                                                                &f_return, context, annotation_value );
-                                Z_TRY_DELREF(f_return);
+                                zend_call_method_with_2_params( context, annotation_entry, NULL, "input", &f_return, context, annotation_value );
+                                Z_TRY_DELREF( f_return );
                             } ZEND_HASH_FOREACH_END();
                         } /* function's annotations */
                     } /* function annotations */
@@ -137,7 +132,7 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
     if ( EX( return_value ) ) {
         ZVAL_COPY( &func_return, EX( return_value ) );
     }
-
+    
     ARRAY_MODE( func_return ) {
         if ( OUTPUT_JSON == output_type ) {
             smart_str http_body = { 0 };
@@ -158,13 +153,13 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
             smart_str_free( &http_body );
         }
     }
-
+    
     if ( ( Z_TYPE( func_return ) == IS_TRUE || Z_TYPE( func_return ) == IS_ARRAY ) ) {
         invoke_kernel_aop_method( success_zval );
     } else if ( ( Z_TYPE( func_return ) == IS_FALSE || Z_TYPE( func_return ) == IS_NULL ) ) {
         invoke_kernel_aop_method( failure_zval );
     }
-
+    
     ARRAY_P_MODE( after_zval ) {
         invoke_kernel_aop_method( after_zval );
     }
@@ -173,7 +168,7 @@ XAOP_C_LABEL( release_memory )
     
     Z_TRY_DELREF( func_return );
     
-    if( Z_TYPE(charset) == IS_STRING ) {
+    if ( Z_TYPE( charset ) == IS_STRING ) {
         Z_TRY_DELREF( charset );
     }
     

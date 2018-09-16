@@ -121,7 +121,7 @@ void parse_line_phpdoc(zend_string *line_doc, zval *result, int *body_end_pos, i
     smart_str name = { 0 }, data = { 0 };
 
     int pos = 0, doc_len = ZSTR_LEN(line_doc),
-        sp = 0, p_left = 0, p_right = 0, 
+        sp = 0, p_left = 0, p_right = 0,
         in_quote = 0, is_space = 0;
 
     for ( ; pos < doc_len; pos++ ) {
@@ -175,7 +175,9 @@ void parse_line_phpdoc(zend_string *line_doc, zval *result, int *body_end_pos, i
 
     array_init(&line_result);
     parse_key_value_pairs(data.s, &line_result);
-    add_assoc_zval(result, ZSTR_VAL(php_trim(name.s, " ", sizeof(" "), 3)), &line_result);
+    zend_string *t_name = php_trim(name.s, " ", sizeof(" "), 3);
+    add_assoc_zval(result, ZSTR_VAL(t_name), &line_result);
+    zend_string_release(t_name);
 
     smart_str_free(&name);
     smart_str_free(&data);
@@ -216,7 +218,7 @@ void parse_key_value_pairs(zend_string *str, zval *result)
             smart_str_0(&key_value);
             parse_key_value(key_value.s, result);
             smart_str_free(&key_value);
-        } 
+        }
     }
 }/*}}}*/
 
@@ -251,7 +253,10 @@ void parse_key_value(zend_string *str, zval *result)
             k = php_trim( key.s, " \"", sizeof(" \""), 3);
             v = php_trim( value.s, " \"", sizeof(" \""), 3);
 
-            add_assoc_str(result, ZSTR_VAL(k), v);
+            add_assoc_string(result, ZSTR_VAL(k), ZSTR_VAL(v));
+            
+            zend_string_release(k);
+            zend_string_release(v);
         }
     }
 
