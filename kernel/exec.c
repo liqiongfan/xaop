@@ -115,7 +115,7 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
                                 }
                                 zval annotation_obj, f_return;
                                 xaop_get_object_from_di( &annotation_obj, ZSTR_VAL( annotation_name ), annotation_entry );
-                                zend_call_method_with_2_params( context, annotation_entry, NULL, "input", &f_return, context, annotation_value );
+                                zend_call_method_with_2_params( &annotation_obj, annotation_entry, NULL, "input", &f_return, context, annotation_value );
                                 Z_TRY_DELREF( f_return );
                             } ZEND_HASH_FOREACH_END();
                         } /* function's annotations */
