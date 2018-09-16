@@ -21,6 +21,7 @@
 #include "php_xaop.h"
 
 zend_class_entry *annotation_ce;
+zend_class_entry *doc_ce;
 /*
  * Local variables:
  * tab-width: 4

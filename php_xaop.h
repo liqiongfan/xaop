@@ -84,6 +84,7 @@ ZEND_EXTERN_MODULE_GLOBALS(xaop)
 #define XAOP_ENTRY_OBJ(obj)        (Z_OBJCE_P(obj)),(obj)
 
 XAOP_INIT(annotation);
+XAOP_INIT(doc);
 
 #endif	/* PHP_XAOP_H */
 

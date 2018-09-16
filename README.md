@@ -78,9 +78,9 @@ _before goodLists
 ```php
 namespace app;
 
-use Xaop\Annotation;
+use Xaop\Annotations;
 
-class Tag implements Annotation {
+class Tag implements Annotations {
 
     function input($object, $annotations) {
         var_dump($object);

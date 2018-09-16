@@ -6,6 +6,7 @@ if test "$PHP_XAOP" != "no"; then
   dnl Write more examples of tests here...
 
   PHP_NEW_EXTENSION(xaop, xaop.c kernel/exec.c kernel/helper.c kernel/parsing.c kernel/classes.c \
+  kernel/annotations/annotation.c \
   kernel/interface/annotation.c,
   $ext_shared,,
   -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)

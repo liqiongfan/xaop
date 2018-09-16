@@ -71,6 +71,7 @@ PHP_MINIT_FUNCTION(xaop)
 	REGISTER_INI_ENTRIES();
 	
 	annotation_init();
+	doc_init();
 	
 	return SUCCESS;
 }

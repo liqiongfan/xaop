@@ -175,7 +175,7 @@ void parse_line_phpdoc(zend_string *line_doc, zval *result, int *body_end_pos, i
 
     array_init(&line_result);
     parse_key_value_pairs(data.s, &line_result);
-    add_assoc_zval(result, ZSTR_VAL(name.s), &line_result);
+    add_assoc_zval(result, ZSTR_VAL(php_trim(name.s, " ", sizeof(" "), 3)), &line_result);
 
     smart_str_free(&name);
     smart_str_free(&data);
