@@ -84,6 +84,7 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_DC )
                             after_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( AFTER_TEXT ) );
                             success_zval    = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( SUCCESS_TEXT ) );
                             failure_zval    = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( FAILURE_TEXT ) );
+                            
                             deprecated_zval = zend_hash_str_find( Z_ARRVAL_P( annotations ), ZEND_STRL( DEPRECATED_TEXT ) );
                             if ( deprecated_zval ) {
                                 XAOP_INFO( E_DEPRECATED, "Function %s%s%s() is deprecated",
@@ -125,9 +126,11 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_DC )
             } /* class's annotations */
         } /* class annotations */
     } /* end for annotation mode */
-    ZVAL_NULL( &func_return );
+    
     if ( NULL == EX( return_value ) ) {
         EX( return_value ) = &func_return;
+    } else {
+        ZVAL_NULL( &func_return );
     }
     execute_ex( execute_data );
     if ( EX( return_value ) ) {
@@ -155,9 +158,10 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_DC )
         }
     }
     
-    if ( ( Z_TYPE( func_return ) == IS_TRUE || Z_TYPE( func_return ) == IS_ARRAY ) ) {
+    if ( success_zval && ( Z_TYPE( func_return ) == IS_TRUE || Z_TYPE( func_return ) == IS_ARRAY ) ) {
         invoke_kernel_aop_method( success_zval );
-    } else if ( ( Z_TYPE( func_return ) == IS_FALSE || Z_TYPE( func_return ) == IS_NULL ) ) {
+    }
+    else if ( failure_zval && ( Z_TYPE( func_return ) == IS_FALSE || Z_TYPE( func_return ) == IS_NULL ) ) {
         invoke_kernel_aop_method( failure_zval );
     }
     
@@ -169,7 +173,7 @@ XAOP_C_LABEL( release_memory )
     
     Z_TRY_DELREF( func_return );
     
-    if ( Z_TYPE( charset ) == IS_STRING ) {
+    if ( api_zval && IS_ARRAY == Z_TYPE_P(api_zval) && zend_hash_num_elements(Z_ARRVAL_P(api_zval)) && Z_TYPE( charset ) == IS_STRING ) {
         Z_TRY_DELREF( charset );
     }
     

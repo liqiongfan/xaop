@@ -91,12 +91,12 @@ PHP_MINIT_FUNCTION(xaop)
 	/* If you have INI entries, uncomment these lines */
     le_xaop = zend_register_list_destructors_ex(NULL, NULL, "XaopExec", module_number);
     ZEND_INIT_MODULE_GLOBALS(xaop, php_xaop_init_globals, NULL);
-	REGISTER_INI_ENTRIES();
- 
- 
-	annotation_init();
-	doc_init();
-	xaop_init();
+    REGISTER_INI_ENTRIES();
+    
+    
+    annotation_init();
+    doc_init();
+    xaop_init();
 	
 	return SUCCESS;
 }

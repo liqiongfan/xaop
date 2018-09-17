@@ -324,8 +324,7 @@ void invoke_kernel_aop_method(zval *aop_zval)
     /**
      * if not given the aop_zval or aop_zval is NULL, empty array or not array value
      * return directly */
-    if ( !aop_zval || Z_TYPE_P(aop_zval) != IS_ARRAY
-         || !zend_hash_num_elements(Z_ARRVAL_P(aop_zval)) ) return ;
+    if ( !aop_zval || Z_TYPE_P(aop_zval) != IS_ARRAY || !zend_hash_num_elements(Z_ARRVAL_P(aop_zval)) ) return ;
     
     zval *value = NULL, *param = NULL;
     
@@ -342,7 +341,6 @@ void invoke_kernel_aop_method(zval *aop_zval)
         &class_function,
         ZEND_LONG_MAX
     );
-    
     /* Class & function not fited or function name not given */
     if ( zend_hash_num_elements(Z_ARRVAL(class_function)) != 2 ) {
         zend_array_destroy(Z_ARRVAL(class_function));
@@ -369,7 +367,7 @@ void invoke_kernel_aop_method(zval *aop_zval)
  */
 void xaop_call_method_with_php_params(zval *object, char *method_name, zval *params, zval *retval)
 {
-    if ( params )  {
+    if ( params && IS_STRING == Z_TYPE_P(params) )  {
         if ( Z_TYPE_P(params) != IS_STRING ) {
             convert_to_string(params);
         }
@@ -387,10 +385,10 @@ void xaop_call_method_with_php_params(zval *object, char *method_name, zval *par
         
         zval *params_temp = (zval *)emalloc(sizeof(zval) * p_counts );
         ZEND_HASH_FOREACH_VAL(Z_ARRVAL(parameters), val_para) {
-                    ZVAL_COPY(&params_temp[n], val_para);
-                    n++;
-                } ZEND_HASH_FOREACH_END();
-        
+            ZVAL_COPY(&params_temp[n], val_para);
+            n++;
+        } ZEND_HASH_FOREACH_END();
+
         xaop_call_method_with_c_params(object, method_name, p_counts, params_temp, retval);
         efree(params_temp);
         zend_array_destroy(Z_ARRVAL(parameters));

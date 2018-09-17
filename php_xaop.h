@@ -24,7 +24,7 @@
 extern zend_module_entry xaop_module_entry;
 #define phpext_xaop_ptr &xaop_module_entry
 
-#define PHP_XAOP_VERSION "0.1.0" /* Replace with version number for your extension */
+#define PHP_XAOP_VERSION "0.9.9" /* Replace with version number for your extension */
 
 #ifdef PHP_WIN32
 #	define PHP_XAOP_API __declspec(dllexport)
