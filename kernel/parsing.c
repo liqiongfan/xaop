@@ -92,6 +92,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
     xaop_method_with_3_char_params("preg_replace", ZSTR_VAL(body.s), "\n", "#\\n[ ]*\\**[ ]*#", &ret);
     smart_str_free(&body);
     add_assoc_stringl(result, "body", Z_STRVAL(ret) + 1, Z_STRLEN(ret) > 2 ? Z_STRLEN(ret) - 2 : Z_STRLEN(ret));
+    zval_ptr_dtor(&ret);
 }/*}}}*/
 
 /**
@@ -237,8 +238,6 @@ void parse_key_value(zend_string *str, zval *result)
 
     zend_string *k = NULL, *v = NULL;
     smart_str key = { 0 }, value = { 0 };
-    zval params;
-    array_init(&params);
     
     for ( pos = 0; pos <  pos_len; pos++ ) {
         

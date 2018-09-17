@@ -15,7 +15,6 @@
  | Author: Josin https://www.supjos.cn                                  |
  +----------------------------------------------------------------------+
  */
-#include <Zend/zend_compile.h>
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
@@ -28,8 +27,8 @@
 #include "ext/json/php_json.h"
 #include "main/SAPI.h"
 #include "Zend/zend_interfaces.h"
+#include "Zend/zend_compile.h"
 #include "kernel/interface/annotation.h"
-#include <setjmp.h>
 
 /**
  * To execute the zend_op_array to instead of the default one.

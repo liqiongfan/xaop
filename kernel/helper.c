@@ -255,9 +255,12 @@ void xaop_api_handler(zval *api_zval, int *tp, zval *c_set)
         if ( charset ) ZVAL_COPY_VALUE( c_set, charset ); else ZVAL_STRING( c_set, "UTF-8" );
     
         sapi_header_line ctr = { 0 };
-        ctr.line_len      = spprintf( &( ctr.line ), 0, "Content-Type: application/%s;charset=%s",
-                                      !type ? "json" : ZSTR_VAL( zend_string_tolower( Z_STR_P( type ) ) ),
-                                      Z_STRVAL_P( c_set ) );
+        ctr.line_len  = spprintf(
+            &( ctr.line ), 0,
+            "Content-Type: application/%s;charset=%s",
+            !type ? "json" : ZSTR_VAL( zend_string_tolower( Z_STR_P( type ) ) ),
+            Z_STRVAL_P( c_set )
+        );
         ctr.response_code = 200;
         sapi_header_op( SAPI_HEADER_REPLACE, &ctr );
         efree( ctr.line );
@@ -357,6 +360,7 @@ void invoke_kernel_aop_method(zval *aop_zval)
         xaop_call_method_with_php_params(&class_obj, Z_STRVAL_P(funct_name), param, &retval);
         zval_ptr_dtor(&retval);
     }
+    zend_array_destroy(Z_ARRVAL(class_function));
 }/*}}}*/
 
 /**
