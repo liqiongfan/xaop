@@ -36,6 +36,10 @@ extern zend_class_entry *xaop_ce;
         php_error_docref(NULL, E_ERROR, "First argument need to be a valid class name or NULL");\
         return ;\
     }\
+    if ( ZSTR_LEN(function_name) && '*' == ZSTR_VAL(function_name)[0] ) { \
+        php_error_docref(NULL, E_ERROR, "Function name mustn't be `*`.");\
+        return ;\
+    }\
     if ( !zend_is_callable(aop, IS_CALLABLE_CHECK_NO_ACCESS, NULL) ) {\
         php_error_docref(NULL, E_ERROR, "Third argument is expected to be a valid callback");\
         return ;\
