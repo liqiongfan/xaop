@@ -170,7 +170,7 @@ PHP_MINFO_FUNCTION(xaop)
 	php_info_print_table_header(2, "xaop support", "enabled" );
 	php_info_print_table_header(2, "xaop version", PHP_XAOP_VERSION );
 	php_info_print_table_header(2, "enable mode", ( ANNOTATION_AOP == XAOP_G(aop_mode) ) ? "Annotation(文档注解) AOP" : (
-	    INJECTION_AOP == XAOP_G(aop_mode) ? "Injection(方法注入) AOP" : "Unkown mode" ) );
+	    INJECTION_AOP == XAOP_G(aop_mode) ? "Injection(方法注入) AOP" : "Normal(正常模式) Mode" ) );
 	php_info_print_table_header(2, "xaop author", "Josin");
 	php_info_print_table_header(2, "current php version", PHP_VERSION );
 	php_info_print_table_end();

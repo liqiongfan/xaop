@@ -97,7 +97,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
 
 /**
  * {{{
- * Parse one line phpdoc into serval parts and store it into the `result`
+ * Parse one line phpdoc into several parts and store it into the `result`
  * Note that: the second parameter must be write data into
  * such as : line_doc = '@api(type="a,b,c", value="aa,bb.cc")';
  */
@@ -221,6 +221,7 @@ void parse_key_value_pairs(zend_string *str, zval *result)
             smart_str_free(&key_value);
         }
     }
+    smart_str_free(&key_value);
 }/*}}}*/
 
 /**

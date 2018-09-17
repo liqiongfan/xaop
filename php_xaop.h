@@ -1,6 +1,6 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 7                                                        |
+  | Extreme AOP extension for PHP 7                                      |
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
@@ -12,7 +12,7 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author: Josin https://www.supjos.cn                                  |
   +----------------------------------------------------------------------+
 */
 
@@ -24,7 +24,7 @@
 extern zend_module_entry xaop_module_entry;
 #define phpext_xaop_ptr &xaop_module_entry
 
-#define PHP_XAOP_VERSION "0.9.9" /* Replace with version number for your extension */
+#define PHP_XAOP_VERSION "0.9.9"
 
 #ifdef PHP_WIN32
 #	define PHP_XAOP_API __declspec(dllexport)

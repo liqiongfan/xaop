@@ -3,13 +3,14 @@
 ### 功能特色 ###
 
 - **基于对象的文档注解AOP模式**
-- **方法注入AOP模式(推荐使用)**
+- **方法注入AOP模式**
 
 #### 框架 ####
 
 - **Yaf**
 - **CSpeed**
 - **Xannotation**
+- **Phalcon**
 
 #### 系统指令及其含义 ####
 
@@ -19,7 +20,7 @@
 
 - **xaop.aop_mode**
 
-  AOP工作模式，可选值： 1 | 2 | 3
+  AOP工作模式，可选值： 1(正常模式) | 2(文档注解AOP) | 3(方法注入AOP)
 
 ### 安装 ###
 
@@ -45,7 +46,7 @@ make -j && sudo make install
 xaop.aop_mode = 2
 ```
 
-#### 1、方法注入AOP模式 DEMO: ####
+#### 1、方法注入AOP模式: ####
 
 ```php
 <?php
@@ -119,28 +120,96 @@ Xaop::addAroundAop(NULL, "__get*", function($exec){
 });
 ```
 
-#### 2、文档注解AOP模式 DEMO: ####
+#### 2、基于对象调用的文档注解AOP模式: ####
 
 ```php
 <?php
- 
+
 /**
- *@Aspect
+ * Class Swing
+ * @Aspect
  */
 class Swing
 {
-    public function _before() {
-        echo '_before';
+    function _magicGetBefore() {
+        echo '_magicGetBefore()' . PHP_EOL;
     }
-    
+
+    function _magicGetAfter() {
+        echo '_magicGetAfter()' . PHP_EOL;
+    }
+
+    function _magicSuccess() {
+        echo '_magicSuccess()' . PHP_EOL;
+    }
+
+    function _magicFailure() {
+        echo '_magicFailure()' . PHP_EOL;
+    }
+
     /**
-     *@before(value="Swing._before")
+     * @before( value="Swing._magicGetBefore" )
+     * @after( value="Swing._magicGetAfter" )
+     * @success( value="Swing._magicSuccess" )
      */
-    public function goodLists() {
-    	echo 'goodLists';
+    public function __get($name)
+    {
+        echo '__get' . PHP_EOL;
+        return true;
     }
+
+
+    /**
+     * @before( value="Swing._magicGetBefore" )
+     * @after( value="Swing._magicGetAfter" )
+     * @failure( value="Swing._magicFailure" )
+     */
+    public function __set($name, $value)
+    {
+        echo '__set' . PHP_EOL;
+        return false;
+    }
+
 }
 ```
+
+示例1：
+
+```php
+// 调用 __get
+$swing = new Swing();
+$swing->di
+```
+
+输出结果如下：
+
+```php
+_magicGetBefore() 
+__get 
+_magicSuccess() 
+_magicGetAfter()
+```
+
+示例2：
+
+```php
+// 调用 __set
+$swing = new Swing();
+$swing->di = "di";
+```
+
+输出结果如下：
+
+```php
+_magicGetBefore() 
+__set 
+_magicFailure() 
+_magicGetAfter()
+```
+
+**Xaop** 目前 **基于对象的文档注解 AOP模式** ，如果使用 **静态调用(self::|parent::|static::|class)** 等都不会被捕捉，核心不进行捕捉的原因在于文档注解存在调用注解类的 `input`方法，而 `input`方法的第一个参数为类的对象，因此会额外增加一次对象的生成开销，为了减少对象生成开销，核心去除了静态方法的捕捉功能。
+
+
 
 因为基于 **ZendOPcode**，所以不需要使用代理对象完成切面，**直接调用方法** 即可：
 
