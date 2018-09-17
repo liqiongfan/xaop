@@ -276,22 +276,14 @@ void xaop_injection_internal_ex( zend_execute_data *execute_data TSRMLS_DC, zval
         }
     }
     if ( 0 == XAOP_G(around_mode) ) {
-        zval retval;
-        ZVAL_NULL(&retval);
-        if ( NULL == EX(return_value) ) {
-            EX( return_value ) = &retval;
-        }
         execute_internal( execute_data, return_value );
-        if ( EX( return_value ) ) {
-            ZVAL_COPY( &retval, EX( return_value ) );
-        }
         
         if ( funct_name != NULL ) {
             /** In function call */
             if ( scope != NULL ) {
                 /** Current in class scope */
                 PARSING_SCOPE_AFTER_AOP( after_aops, 1 );
-                if ( IS_NULL != Z_TYPE( retval ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 1 ); }
+                if ( return_value && IS_NULL != Z_TYPE_P( return_value ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 1 ); }
                 if ( EG( exception ) ) {
                     zend_object *exception_object = EG( exception );
                     EG( exception ) = NULL;
@@ -301,16 +293,15 @@ void xaop_injection_internal_ex( zend_execute_data *execute_data TSRMLS_DC, zval
             IN_CLASS_SCOPE_NOT
                 /** Not in class scope, such as global function */
                 PARSING_SCOPE_AFTER_AOP( after_aops, 0 );
-                if ( IS_NULL != Z_TYPE( retval ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 0 ); }
+                if ( return_value && IS_NULL != Z_TYPE_P( return_value ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 0 ); }
                 if ( EG( exception ) ) {
                     zend_object *exception_object = EG( exception );
                     EG( exception ) = NULL;
                     PARSING_SCOPE_AFTER_AOP( after_throw_aops, 0 );
                     EG( exception )               = exception_object;
-                } IN_CLASS_SCOPE_END
+                }
+            IN_CLASS_SCOPE_END
         }
-    
-        Z_TRY_DELREF( retval );
     }
 }
 
