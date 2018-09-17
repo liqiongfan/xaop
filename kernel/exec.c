@@ -243,7 +243,8 @@ void xaop_injection_ex( zend_execute_data *execute_data TSRMLS_DC )
                     EG( exception ) = NULL;
                     PARSING_SCOPE_AFTER_AOP( after_throw_aops, 0 );
                     EG( exception )               = exception_object;
-                } IN_CLASS_SCOPE_END
+                }
+            IN_CLASS_SCOPE_END
         }
     
         Z_TRY_DELREF( retval );
