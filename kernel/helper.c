@@ -20,13 +20,14 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_xaop.h"
-#include "kernel/helper.h"
 #include "main/SAPI.h"
 #include "ext/json/php_json.h"
 #include "ext/standard/php_string.h"
 #include "Zend/zend_smart_str.h"
+#include "Zend/zend_exceptions.h"
+#include "kernel/helper.h"
 
-/** 
+/**
  * {{{
  * Call global function with 3 params
  * it mainly means to call the `preg_replace` function
@@ -176,7 +177,7 @@ void invoke_zval_arg(zval *arg)
 {
     if ( Z_TYPE_P(arg) == IS_OBJECT && zend_is_callable(arg, IS_CALLABLE_CHECK_NO_ACCESS, NULL) ) {
         zval retval;
-        call_user_function(NULL, arg, arg, &retval, 0, NULL);
+        call_user_function(NULL, NULL, arg, &retval, 0, NULL);
         zval_ptr_dtor(&retval);
         return ;
     } else if ( 2 != zend_hash_num_elements(Z_ARRVAL_P(arg)) )
@@ -190,6 +191,43 @@ void invoke_zval_arg(zval *arg)
         zval obj, retval;
         xaop_get_object_from_di(&obj, Z_STRVAL_P(class_name), class_ce);
         call_user_function(NULL, &obj, funct_name, &retval, 0, NULL);
+        zval_ptr_dtor(&retval);
+    }
+}/*}}}*/
+
+/**
+ * To execute the given function with the given execute_data
+ */
+void invoke_zval_arg_with_execute_data(zval *arg, zend_execute_data *jmp_buf)
+{
+    if ( Z_TYPE_P(arg) == IS_OBJECT && zend_is_callable(arg, IS_CALLABLE_CHECK_NO_ACCESS, NULL) ) {
+        zval retval, data;
+        ZVAL_RES(&data, zend_register_resource(jmp_buf, le_xaop));
+        zval params[1] = { data };
+        call_user_function(NULL, NULL, arg, &retval, 1, params);
+        jmp_buf->opline = jmp_buf->func->op_array.opcodes;
+        if ( EG(exception) ) {
+            zend_exception_error(EG(exception), E_WARNING);
+        }
+        zval_ptr_dtor(&retval);
+        return ;
+    } else if ( 2 != zend_hash_num_elements(Z_ARRVAL_P(arg)) )
+        return ;
+    
+    zval *class_name = zend_hash_index_find(Z_ARRVAL_P(arg), 0);
+    zval *funct_name = zend_hash_index_find(Z_ARRVAL_P(arg), 1);
+    
+    zend_class_entry *class_ce = zend_lookup_class(zend_string_tolower(Z_STR_P(class_name)));
+    if ( class_ce ) {
+        zval obj, retval, data;
+        ZVAL_RES(&data, zend_register_resource(jmp_buf, le_xaop));
+        zval params[1] = { data };
+        xaop_get_object_from_di(&obj, Z_STRVAL_P(class_name), class_ce);
+        call_user_function(NULL, &obj, funct_name, &retval, 1, params);
+        if ( EG(exception) ) {
+            zend_exception_error(EG(exception), E_WARNING);
+        }
+        jmp_buf->opline = jmp_buf->func->op_array.opcodes;
         zval_ptr_dtor(&retval);
     }
 }/*}}}*/

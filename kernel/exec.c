@@ -29,12 +29,13 @@
 #include "main/SAPI.h"
 #include "Zend/zend_interfaces.h"
 #include "kernel/interface/annotation.h"
+#include <setjmp.h>
 
 /**
  * To execute the zend_op_array to instead of the default one.
  * @param execute_data  current op_array data need to be run.
  */
-void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_CC )
+void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_DC )
 {
     zval          *context = getThis();
     zend_function *func    = execute_data->func;
@@ -177,6 +178,139 @@ XAOP_C_LABEL( release_memory )
     }
     ARRAY_MODE( function_annos ) {
         zend_array_destroy( Z_ARRVAL( function_annos ) );
+    }
+}
+
+/**
+ * To execute the user-defined code
+ *
+ * Each method injection calling, need set the env. code for overloaded to 1 after running the aop method, reset it to 0
+ * @param execute_data      The current execute stack.
+ */
+void xaop_injection_ex( zend_execute_data *execute_data TSRMLS_DC )
+{
+    zend_string *funct_name = execute_data->func->common.function_name;
+    zend_class_entry *scope  = execute_data->func->common.scope;
+    
+    if ( 0 == XAOP_G(around_mode) ) {
+        INVOKE_METHOD_CONTEXT() {
+            if ( funct_name ) {
+                /** In function call */
+                if ( scope ) {
+                    /** Current in class scope */
+                    PARSING_SCOPE_AROUND_AOP( 1 );
+                    PARSING_SCOPE_AOP( before_aops, 1 );
+                IN_CLASS_SCOPE_NOT
+                    /** Not in class scope, such as global function */
+                    PARSING_SCOPE_AROUND_AOP( 0 );
+                    PARSING_SCOPE_AOP( before_aops, 0 );
+                IN_CLASS_SCOPE_END
+            }
+        }
+    }
+    if ( 0 == XAOP_G(around_mode) ) {
+        zval retval;
+        ZVAL_NULL(&retval);
+        if ( NULL == EX(return_value) ) {
+            EX( return_value ) = &retval;
+        }
+        execute_ex( execute_data );
+        if ( EX( return_value ) ) {
+            ZVAL_COPY( &retval, EX( return_value ) );
+        }
+        
+        if ( funct_name != NULL ) {
+            /** In function call */
+            if ( scope != NULL ) {
+                /** Current in class scope */
+                PARSING_SCOPE_AFTER_AOP( after_aops, 1 );
+                if ( IS_NULL != Z_TYPE( retval ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 1 ); }
+                if ( EG( exception ) ) {
+                    zend_object *exception_object = EG( exception );
+                    EG( exception ) = NULL;
+                    PARSING_SCOPE_AFTER_AOP( after_throw_aops, 1 );
+                    EG( exception )               = exception_object;
+                }
+            IN_CLASS_SCOPE_NOT
+                /** Not in class scope, such as global function */
+                PARSING_SCOPE_AFTER_AOP( after_aops, 0 );
+                if ( IS_NULL != Z_TYPE( retval ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 0 ); }
+                if ( EG( exception ) ) {
+                    zend_object *exception_object = EG( exception );
+                    EG( exception ) = NULL;
+                    PARSING_SCOPE_AFTER_AOP( after_throw_aops, 0 );
+                    EG( exception )               = exception_object;
+                } IN_CLASS_SCOPE_END
+        }
+    
+        Z_TRY_DELREF( retval );
+    }
+}
+
+/**
+ * To execute the zend_execute_data instead of the kernel default
+ *
+ * Each method injection calling, need set the env. code for overloaded to 1 after running the aop method, reset it to 0
+ * @param execute_data      The current execute stack.
+ * @param return_value      The return_value
+ */
+void xaop_injection_internal_ex( zend_execute_data *execute_data TSRMLS_DC, zval *return_value TSRMLS_DC)
+{
+    zend_string *funct_name = execute_data->func->common.function_name;
+    zend_class_entry *scope = execute_data->func->common.scope;
+    
+    if ( 0 == XAOP_G(around_mode) ) {
+        INVOKE_METHOD_CONTEXT() {
+            if ( funct_name ) {
+                /** In function call */
+                if ( scope ) {
+                    /** Current in class scope */
+                    PARSING_SCOPE_AROUND_AOP( 1 );
+                    PARSING_SCOPE_AOP( before_aops, 1 );
+                IN_CLASS_SCOPE_NOT
+                    /** Not in class scope, such as global function */
+                    PARSING_SCOPE_AROUND_AOP( 0 );
+                    PARSING_SCOPE_AOP( before_aops, 0 );
+                IN_CLASS_SCOPE_END
+            }
+        }
+    }
+    if ( 0 == XAOP_G(around_mode) ) {
+        zval retval;
+        ZVAL_NULL(&retval);
+        if ( NULL == EX(return_value) ) {
+            EX( return_value ) = &retval;
+        }
+        execute_internal( execute_data, return_value );
+        if ( EX( return_value ) ) {
+            ZVAL_COPY( &retval, EX( return_value ) );
+        }
+        
+        if ( funct_name != NULL ) {
+            /** In function call */
+            if ( scope != NULL ) {
+                /** Current in class scope */
+                PARSING_SCOPE_AFTER_AOP( after_aops, 1 );
+                if ( IS_NULL != Z_TYPE( retval ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 1 ); }
+                if ( EG( exception ) ) {
+                    zend_object *exception_object = EG( exception );
+                    EG( exception ) = NULL;
+                    PARSING_SCOPE_AFTER_AOP( after_throw_aops, 1 );
+                    EG( exception )               = exception_object;
+                }
+            IN_CLASS_SCOPE_NOT
+                /** Not in class scope, such as global function */
+                PARSING_SCOPE_AFTER_AOP( after_aops, 0 );
+                if ( IS_NULL != Z_TYPE( retval ) ) { PARSING_SCOPE_AFTER_AOP( after_return_aops, 0 ); }
+                if ( EG( exception ) ) {
+                    zend_object *exception_object = EG( exception );
+                    EG( exception ) = NULL;
+                    PARSING_SCOPE_AFTER_AOP( after_throw_aops, 0 );
+                    EG( exception )               = exception_object;
+                } IN_CLASS_SCOPE_END
+        }
+    
+        Z_TRY_DELREF( retval );
     }
 }
 

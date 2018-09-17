@@ -15,14 +15,34 @@
  | Author: Josin https://www.supjos.cn                                  |
  +----------------------------------------------------------------------+
  */
-#include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
-#include "php_xaop.h"
+#ifndef XAOP_H
+#define XAOP_H
 
-zend_class_entry *annotation_ce;
-zend_class_entry *doc_ce;
-zend_class_entry *xaop_ce;
+extern zend_class_entry *xaop_ce;
+
+#define DCL_PARAMS      zval *class_name, *aop; zend_string *function_name;
+#define SAVE_PARAMS_ZPP()     ZEND_PARSE_PARAMETERS_START(3, 3)\
+    Z_PARAM_ZVAL(class_name)\
+    Z_PARAM_STR(function_name)\
+    Z_PARAM_ZVAL(aop)\
+    ZEND_PARSE_PARAMETERS_END()
+
+#define SAVE_PARAMS_OLD()  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zSz", &class_name, &function_name, &aop) == FAILURE ) { \
+    return ; \
+    }
+
+#define CHECK_PARAM() do {\
+    if ( Z_TYPE_P(class_name) != IS_STRING && Z_TYPE_P(class_name) != IS_NULL ) { \
+        php_error_docref(NULL, E_ERROR, "First argument need to be a valid class name or NULL");\
+        return ;\
+    }\
+    if ( !zend_is_callable(aop, IS_CALLABLE_CHECK_NO_ACCESS, NULL) ) {\
+        php_error_docref(NULL, E_ERROR, "Third argument is expected to be a valid callback");\
+        return ;\
+    }\
+} while(0)
+
+#endif //XAOP_H
 /*
  * Local variables:
  * tab-width: 4

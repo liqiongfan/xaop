@@ -50,11 +50,18 @@ extern zend_module_entry xaop_module_entry;
 	and END macros here:
 */
 ZEND_BEGIN_MODULE_GLOBALS(xaop)
-	zval di;					/* Di container */
-    int aspect;                 /* Aspect mode or not, 1 for aspect 0 for not. */
-    int overloaded;             /* overload mode or not 1: overload 0: normal */
-	int aop_mode;               /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
-	char *method_prefix;		/* The AOP method start with will be excluded */
+    zval di;                    /* Di container */
+    int  aspect;                /* Aspect mode or not, 1 for aspect 0 for not. */
+    int  overloaded;            /* overload mode or not 1: overload 0: normal */
+    int  aop_mode;              /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
+    char *method_prefix;        /* The AOP method start with will be excluded */
+    
+    zval before_aops;           /* The before aop */
+    zval after_aops;            /* The after aop */
+    zval after_return_aops;     /* The after_return aop */
+    zval after_throw_aops;      /* The after_throw aop */
+    zval around_aops;           /* The around_aop */
+    int  around_mode;           /* In around aop mode */
 ZEND_END_MODULE_GLOBALS(xaop)
 
 /* Always refer to the globals in your function as XAOP_G(variable).
@@ -84,8 +91,11 @@ ZEND_EXTERN_MODULE_GLOBALS(xaop)
 #define XAOP_INFO(type, info...)   php_error_docref(0, type, ##info)
 #define XAOP_ENTRY_OBJ(obj)        (Z_OBJCE_P(obj)),(obj)
 
+extern int le_xaop;
+
 XAOP_INIT(annotation);
 XAOP_INIT(doc);
+XAOP_INIT(xaop);
 
 #endif	/* PHP_XAOP_H */
 

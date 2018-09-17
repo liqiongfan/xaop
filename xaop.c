@@ -12,7 +12,7 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author: Josin <https://www.supjos.cn>                                |
   +----------------------------------------------------------------------+
 */
 
@@ -32,7 +32,7 @@
 ZEND_DECLARE_MODULE_GLOBALS(xaop)
 
 /* True global resources - no need for thread safety here */
-static int le_xaop;
+int le_xaop;
 
 /** {{{ PHP_INI
  */
@@ -54,6 +54,26 @@ PHP_FUNCTION(get_xaop_version)
 }
 /* }}} */
 
+PHP_FUNCTION(get_aops)
+{
+    zend_long type;
+    if ( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &type) == FAILURE ) {
+        return ;
+    }
+    
+    if ( type == 1) {
+        ZVAL_COPY(return_value, &XAOP_G(before_aops));
+    } else if ( type == 2) {
+        ZVAL_COPY(return_value, &XAOP_G(after_aops));
+    } else if ( type == 3 ) {
+        ZVAL_COPY(return_value, &XAOP_G(after_return_aops));
+    } else if ( type == 4 ) {
+        ZVAL_COPY(return_value, &XAOP_G(after_throw_aops));
+    } else if ( type == 5 ) {
+        ZVAL_COPY(return_value, &XAOP_G(around_aops));
+    }
+}
+
 /* {{{ php_xaop_init_globals
  */
 /* Uncomment this function if you have INI entries */
@@ -69,11 +89,14 @@ static void php_xaop_init_globals(zend_xaop_globals *xaop_globals)
 PHP_MINIT_FUNCTION(xaop)
 {
 	/* If you have INI entries, uncomment these lines */
+    le_xaop = zend_register_list_destructors_ex(NULL, NULL, "XaopExec", module_number);
     ZEND_INIT_MODULE_GLOBALS(xaop, php_xaop_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
-	
+ 
+ 
 	annotation_init();
 	doc_init();
+	xaop_init();
 	
 	return SUCCESS;
 }
@@ -104,10 +127,19 @@ PHP_RINIT_FUNCTION(xaop)
             zend_execute_ex = xaop_annotation_ex;
             break;
         case INJECTION_AOP:
+            zend_execute_ex = xaop_injection_ex;
+            zend_execute_internal = xaop_injection_internal_ex;
             break;
     }
     XAOP_G(overloaded) = 0;
+    XAOP_G(around_mode) = 0;
     array_init(&XAOP_G(di));
+    /* Init all injection aop */
+    array_init(&XAOP_G(before_aops));
+    array_init(&XAOP_G(after_aops));
+    array_init(&XAOP_G(after_return_aops));
+    array_init(&XAOP_G(after_throw_aops));
+    array_init(&XAOP_G(around_aops));
 	return SUCCESS;
 }
 /* }}} */
@@ -121,6 +153,11 @@ PHP_RSHUTDOWN_FUNCTION(xaop)
     ZEND_TSRMLS_CACHE_UPDATE();
 #endif
     zend_array_destroy(Z_ARRVAL(XAOP_G(di)));
+    zend_array_destroy(Z_ARRVAL(XAOP_G(before_aops)));
+    zend_array_destroy(Z_ARRVAL(XAOP_G(after_aops)));
+    zend_array_destroy(Z_ARRVAL(XAOP_G(after_return_aops)));
+    zend_array_destroy(Z_ARRVAL(XAOP_G(after_throw_aops)));
+    zend_array_destroy(Z_ARRVAL(XAOP_G(around_aops)));
     return SUCCESS;
 }
 /* }}} */
@@ -149,6 +186,7 @@ PHP_MINFO_FUNCTION(xaop)
  */
 const zend_function_entry xaop_functions[] = {
 	PHP_FE(get_xaop_version,	NULL)		/* For testing, remove later. */
+	PHP_FE(get_aops,	NULL)		/* For testing, remove later. */
 	PHP_FE_END	/* Must be the last line in xaop_functions[] */
 };
 /* }}} */
