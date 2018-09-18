@@ -208,6 +208,7 @@ XAOP_METHOD(Xaop, exec)
     zend_execute_data *exec = (zend_execute_data *)zend_fetch_resource( Z_RES_P(xaop_exec), "XaopExec", le_xaop);
     if ( exec ) {
         if ( exec->func->type == ZEND_USER_FUNCTION ) {
+            exec->return_value = return_value;
             execute_ex( exec );
         } else if ( exec->func->type == ZEND_INTERNAL_FUNCTION ) {
             execute_internal(exec, return_value);
