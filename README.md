@@ -29,11 +29,7 @@ git clone https://github.com/liqiongfan/xaop.git
 
 cd xaop
 
-/usr/local/path_to_php/bin/phpize
-
-./configure --with-php-config=/usr/local/path_to_php/bin/php-config
-    
-make -j && sudo make install
+sudo ./install
 ```
 
 #### 启用对应功能扩展需要在 php.ini 文件配置指令： xaop.aop_mode，如下： ####

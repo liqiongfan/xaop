@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Xaop Framework
+# Xaop is a AOP framework based on PHP7
+# provides two modes for aop use: PHPDoc based AOP & MethodInjection AOP
+# for more information, please goto : https://github.com/liqongfan/xaop
+# Author:Josin https://www.supjos.cn
+
+PHPIZE=$(command -v phpize 2>/dev/null)
+if [ $? != 0 ]; then
+	echo 'Please add the phpize to the PATH env.'
+	exit 1
+fi
+
+PHPCONFIG=$(command -v php-config 2>/dev/null)
+if [ $? != 0 ]; then
+	echo 'Please set the php-config at the PATH env.'
+	exit 1
+fi
+
+PHP_VERSION=$(${PHPCONFIG} --version)
+if [ "${PHP_VERSION:0:1}" != 7 ]; then
+	echo 'Current Xaop only support PHP7.x.'
+	exit 1
+fi
+
+if [ -f Makefile ]; then
+	make clean
+	${PHPIZE} --clean
+fi
+
+${PHPIZE}
+
+./configure --with-php-config=php-config --enable-xaop
+
+make -j
+
+make install -j
+
+echo "Configurations!!! you have installed the Xaop extension in PHP7.x"
+echo "Please restart the webserver(Nginx|Apache) to use the new features!";
+
+
+
