@@ -1,4 +1,4 @@
-# Xaop PHP高性能的AOP扩展 beta
+# Xaop PHP高性能的AOP扩展
 
 ### 功能特色 ###
 
