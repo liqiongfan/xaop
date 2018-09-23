@@ -196,6 +196,60 @@ void invoke_zval_arg(zval *arg)
 }/*}}}*/
 
 /**
+ * Each arg with the format like that:
+ * [
+ *    [0] => B
+ *    [1] => getC
+ * ]
+ */
+void invoke_zval_arg_with_params(zval *arg, zval *arg1, zval *arg2, zval *arg3)
+{
+    if ( Z_TYPE_P(arg) == IS_OBJECT && zend_is_callable(arg, IS_CALLABLE_CHECK_NO_ACCESS, NULL) ) {
+        zval retval;
+        
+        if ( arg1 && !arg2 && !arg3 ) {
+            zval params[1] = { *arg1 };
+            call_user_function(NULL, NULL, arg, &retval, 1, params );
+        } else if ( arg1 && arg2 && !arg3 ) {
+            zval params[2] = { *arg1, *arg2 };
+            call_user_function(NULL, NULL, arg, &retval, 2, params );
+        } else if ( arg1 && arg2 && arg3 ) {
+            zval params[3] = { *arg1, *arg2, *arg3 };
+            call_user_function(NULL, NULL, arg, &retval, 3, params );
+        } else {
+            call_user_function(NULL, NULL, arg, &retval, 0, NULL);
+        }
+        zval_ptr_dtor(&retval);
+        return ;
+    } else if ( 2 != zend_hash_num_elements(Z_ARRVAL_P(arg)) ) {
+        return ;
+    }
+    
+    zval *class_name = zend_hash_index_find(Z_ARRVAL_P(arg), 0);
+    zval *funct_name = zend_hash_index_find(Z_ARRVAL_P(arg), 1);
+    
+    zend_class_entry *class_ce = zend_lookup_class(zend_string_tolower(Z_STR_P(class_name)));
+    if ( class_ce ) {
+        zval obj, retval;
+        xaop_get_object_from_di(&obj, Z_STRVAL_P(class_name), class_ce);
+        
+        if ( arg1 && !arg2 && !arg3 ) {
+            zval params[1] = { *arg1 };
+            call_user_function(NULL, &obj, funct_name, &retval, 1, params );
+        } else if ( arg1 && arg2 && !arg3 ) {
+            zval params[2] = { *arg1, *arg2 };
+            call_user_function(NULL, &obj, funct_name, &retval, 2, params );
+        } else if ( arg1 && arg2 && arg3 ) {
+            zval params[3] = { *arg1, *arg2, *arg3 };
+            call_user_function(NULL, &obj, funct_name, &retval, 3, params );
+        } else {
+            call_user_function(NULL, &obj, funct_name, &retval, 0, NULL );
+        }
+        zval_ptr_dtor(&retval);
+    }
+}/*}}}*/
+
+/**
  * To execute the given function with the given execute_data
  */
 void invoke_zval_arg_with_execute_data(zval *arg, zend_execute_data *jmp_buf)

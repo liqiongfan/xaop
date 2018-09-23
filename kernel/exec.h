@@ -112,6 +112,27 @@
     } ZEND_HASH_FOREACH_END();\
 } while(0)
 
+#define PARSING_PROP_AOP(aop_type) do {\
+    zval *val;\
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL(XAOP_G(property_aops)), val) {\
+        if ( IS_ARRAY == Z_TYPE_P(val) ) {\
+            zval *class = zend_hash_str_find(Z_ARRVAL_P(val), ZEND_STRL("class"));\
+            zval *prop = zend_hash_str_find(Z_ARRVAL_P(val), ZEND_STRL("prop"));\
+            zval *type = zend_hash_str_find(Z_ARRVAL_P(val), ZEND_STRL("type"));\
+            zval *aop = zend_hash_str_find(Z_ARRVAL_P(val), ZEND_STRL("aop"));\
+            if ( aop_type == Z_LVAL_P(type) ) {\
+                /** Do matching job. */\
+                if ( SUCCESS == xaop_match_string(Z_STRVAL_P(class), ZSTR_VAL(Z_OBJCE_P(object)->name) ) &&\
+                SUCCESS == xaop_match_string(Z_STRVAL_P(prop), Z_STRVAL_P(member))\
+                ) {\
+                    /** To invoke the aop function with the object & property */\
+                    invoke_zval_arg_with_params( aop, object, member, NULL );\
+                }\
+            }\
+        }\
+    } ZEND_HASH_FOREACH_END();\
+} while(0)
+
 
 /* Execute the annotation aop instead of the default `zend_execute` function */
 void xaop_annotation_ex(zend_execute_data *execute_data TSRMLS_CC);
@@ -119,6 +140,10 @@ void xaop_annotation_ex(zend_execute_data *execute_data TSRMLS_CC);
 /* Execute the execute stack for method injection aop */
 void xaop_injection_ex( zend_execute_data *execute_data TSRMLS_DC );
 void xaop_injection_internal_ex( zend_execute_data *execute_data TSRMLS_DC, zval *return_value TSRMLS_DC);
+
+/* Xaop's property aop function */
+void xaop_property_aop_ex(zval *object, zval *member, zval *value, void **cache_slot);
+zval *xaop_read_property_aop_ex(zval *object, zval *member, int type, void **cache_slot, zval *rv);
 
 #endif //EXEC_H
 /*

@@ -45,6 +45,15 @@ extern zend_module_entry xaop_module_entry;
 #define ANNOTATION_AOP 2
 #define INJECTION_AOP  3
 
+/** Property AOP type */
+enum {
+    PROPERTY_BEFORE_READ_AOP,
+    PROPERTY_BEFORE_SET_AOP,
+    PROPERTY_AFTER_READ_AOP,    /* Only work in read property  */
+    PROPERTY_AFTER_SET_AOP,     /* Only work in write property */
+    PROPERTY_AFTER_AROUND_AOP   /* Both working */
+};
+
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
@@ -55,6 +64,9 @@ ZEND_BEGIN_MODULE_GLOBALS(xaop)
     int  overloaded;            /* overload mode or not 1: overload 0: normal */
     int  aop_mode;              /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
     char *method_prefix;        /* The AOP method start with will be excluded */
+    zend_object_read_property_t std_reader;
+    int  property_aop;          /* The AOP about the property 1: disable 2 on */
+    zval property_aops;         /* The property aop when property occur */
     
     zval before_aops;           /* The before aop */
     zval after_aops;            /* The after aop */

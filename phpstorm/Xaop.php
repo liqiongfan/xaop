@@ -74,5 +74,56 @@ class Xaop
 
     }
 
+    /**
+     * To add an property before read aop
+     * @param string $className             The class name  can be `*`
+     * @param string $propertyName          The property name   can't be `*`
+     * @param \Closure|array $aopCallback   The callback when aop meet the condition
+     * @return array
+     */
+    public static function addPropertyBeforeReadAop($className, $propertyName, $aopCallback) {
+
+    }
+
+    /**
+     * To add an property before set aop
+     * @param string $className             The class name  can be `*`
+     * @param string $propertyName          The property name   can't be `*`
+     * @param \Closure|array $aopCallback   The callback when aop meet the condition
+     * @return array
+     */
+    public static function addPropertyBeforeSetAop($className, $propertyName, $aopCallback) {
+
+    }
+
+    /**
+     * To add an property after_read aop
+     * @param string $className             The class name  can be `*`
+     * @param string $propertyName          The property name   can't be `*`
+     * @param \Closure|array $aopCallback   The callback when aop meet the condition
+     * @return array
+     */
+    public static function addPropertyAfterReadAop($className, $propertyName, $aopCallback) {
+
+    }
+
+    /**
+     * To add an property after_set aop
+     * @param string $className             The class name  can be `*`
+     * @param string $propertyName          The property name   can't be `*`
+     * @param \Closure|array $aopCallback   The callback when aop meet the condition
+     * @return array
+     */
+    public static function addPropertyAfterSetAop($className, $propertyName, $aopCallback) {
+
+    }
+    
+    /**
+     * To execute the around context
+     * @param Resource|mixed $xaopPropertyExec
+     */
+    public static function execProperty($xaopPropertyExec) {
+
+    }
 
 }

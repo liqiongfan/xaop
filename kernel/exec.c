@@ -309,6 +309,37 @@ void xaop_injection_internal_ex( zend_execute_data *execute_data TSRMLS_DC, zval
     }
 }
 
+/**
+ * This function replace the kernel function's std library function to do the property aop feature
+ */
+void xaop_property_aop_ex(zval *object, zval *member, zval *value, void **cache_slot)
+{
+    if ( 2 == XAOP_G(property_aop) ) {
+        /** To do the AOP job. */
+        PARSING_PROP_AOP(PROPERTY_BEFORE_SET_AOP);
+        zend_std_write_property(object, member, value, cache_slot);
+        PARSING_PROP_AOP(PROPERTY_AFTER_SET_AOP);
+    } else if ( 1 == XAOP_G(property_aop) ) {
+        zend_std_write_property(object, member, value, cache_slot);
+    }
+}/*}}}*/
+
+/** {{{
+ *  This function property the aop feature for the property read
+ */
+zval *xaop_read_property_aop_ex(zval *object, zval *member, int type, void **cache_slot, zval *rv)
+{
+    if ( 2 == XAOP_G(property_aop) ) {
+        /* To do the AOP job. */
+        PARSING_PROP_AOP(PROPERTY_BEFORE_READ_AOP);
+        zval *result = XAOP_G( std_reader )( object, member, type, cache_slot, rv );
+        PARSING_PROP_AOP(PROPERTY_AFTER_READ_AOP);
+        return result;
+    } else {
+        return XAOP_G( std_reader )( object, member, type, cache_slot, rv );
+    }
+}/*}}}*/
+
 /*
  * Local variables:
  * tab-width: 4

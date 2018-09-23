@@ -4,6 +4,7 @@
 
 - **基于对象的文档注解AOP模式**
 - **方法注入AOP模式**
+- **属性AOP模式**
 
 #### 框架 ####
 
@@ -22,6 +23,10 @@
 
   AOP工作模式，可选值： 1(正常模式) | 2(文档注解AOP) | 3(方法注入AOP)
 
+- **xaop.property_aop**
+
+  属性AOP模式开启状态，1：正常模式 2：属性AOP模式开启
+
 ### 安装 ###
 
 ```php
@@ -32,14 +37,21 @@ cd xaop
 sudo ./install
 ```
 
-#### 启用对应功能扩展需要在 php.ini 文件配置指令： xaop.aop_mode，如下： ####
+#### 指令配置含义： ####
 
 ```ini
-; To enable the AOP mode
 ; 1 不启用AOP
 ; 2 文档注解AOP模式
 ; 3 方法注入AOP模式
 xaop.aop_mode = 2
+
+; 是否配置过滤方法前缀
+; 此模式仅在 文档注解AOP模式生效
+xaop.method_prefix = ""
+
+; 是否开启属性AOP模式
+; 1 不开启 2 开启
+xaop.property_aop = 2
 ```
 
 #### 1、方法注入AOP模式: ####
@@ -116,7 +128,35 @@ Xaop::addAroundAop(NULL, "__get*", function($exec){
 });
 ```
 
-#### 2、基于对象调用的文档注解AOP模式: ####
+#### 2、对象属性AOP模式: ####
+
+**Xaop支持对象的属性AOP模式** ：支持前置与后置切入，不实现环绕切入是因为开发者可以通过魔术方法进行处理，简单的示例：
+
+```php
+<?php
+
+class Swing
+{
+    public $di = 'Xaop';
+}
+
+Xaop::addPropertyBeforeReadAop(Swing::class, 'di', function($object, $propertyName){
+    echo '_before';
+});
+
+Xaop::addPropertyAfterReadAop(Swing::class, 'di', function($object, $propertyName){
+    echo '_after';
+});
+
+// 调用属性
+$swing = new Swing();
+echo $swing->di;
+
+// 输出如下：
+_before Xaop _after
+```
+
+#### 3、基于对象调用的文档注解AOP模式: ####
 
 ```php
 <?php
@@ -204,10 +244,6 @@ _magicGetAfter()
 ```
 
 **Xaop** 目前 **基于对象的文档注解 AOP模式** ，如果使用 **静态调用(self::|parent::|static::|class)** 等都不会被捕捉，核心不进行捕捉的原因在于文档注解存在调用注解类的 `input`方法，而 `input`方法的第一个参数为类的对象，因此会额外增加一次对象的生成开销，为了减少对象生成开销，核心去除了静态方法的捕捉功能。
-
-
-
-因为基于 **ZendOPcode**，所以不需要使用代理对象完成切面，**直接调用方法** 即可：
 
 ```php
 <?php
@@ -346,6 +382,3 @@ class Swing
      @deprecated
      ```
 
-     
-
-     

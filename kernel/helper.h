@@ -36,6 +36,7 @@ int xaop_match_string(char *str1, char *str2);
 
 /* Invoke the zval method */
 void invoke_zval_arg(zval *arg);
+void invoke_zval_arg_with_params(zval *arg, zval *arg1, zval *arg2, zval *arg3);
 void invoke_zval_arg_with_execute_data(zval *arg, zend_execute_data *execute_data);
 
 /* Invoke the API handler */

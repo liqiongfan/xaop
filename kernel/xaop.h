@@ -20,6 +20,34 @@
 
 extern zend_class_entry *xaop_ce;
 
+#define XAOP_FUNCTION_DEF  ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC
+
+#define DCL_PROPERTY_PARAMS zend_string *class_name, *property_name; zval *aop;
+#define SAVE_PROPERTY_PARAMS_ZPP() \
+    ZEND_PARSE_PARAMETERS_START(3, 3)\
+        Z_PARAM_STR(class_name)\
+        Z_PARAM_STR(property_name)\
+        Z_PARAM_ZVAL(aop)\
+    ZEND_PARSE_PARAMETERS_END()
+#define CHECK_PROPERTY_PARAMS() do {\
+    if ( !ZSTR_LEN(class_name) ) { \
+        php_error_docref(0, E_ERROR, "$className must be valid name.");\
+        return ;\
+    }\
+    if ( !ZSTR_LEN(property_name) ) {\
+        php_error_docref(0, E_ERROR, "$propertyName must be valid name.");\
+        return ;\
+    }\
+    if ( ZSTR_LEN(property_name) && '*' == ZSTR_VAL(property_name)[0] ) {\
+        php_error_docref(0, E_ERROR, "$propertyName mustn't be `*`.");\
+        return ;\
+    }\
+    if ( !zend_is_callable(aop, IS_CALLABLE_CHECK_NO_ACCESS, NULL) ) {\
+        php_error_docref(NULL, E_ERROR, "Third argument is expected to be a valid callback");\
+        return ;\
+    }\
+} while(0)
+
 #define DCL_PARAMS      zval *class_name, *aop; zend_string *function_name;
 #define SAVE_PARAMS_ZPP()     ZEND_PARSE_PARAMETERS_START(3, 3)\
     Z_PARAM_ZVAL(class_name)\

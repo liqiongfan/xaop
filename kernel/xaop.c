@@ -51,6 +51,30 @@ ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(xaop_add_after_throw_aop), 0, 0, 3)
     ZEND_ARG_INFO(0, aop)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(xaop_add_property_before_read_aop), 0, 0, 3)
+   ZEND_ARG_INFO(0, className)
+   ZEND_ARG_INFO(0, propertyName)
+   ZEND_ARG_INFO(0, aop)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(xaop_add_property_before_set_aop), 0, 0, 3)
+   ZEND_ARG_INFO(0, className)
+   ZEND_ARG_INFO(0, propertyName)
+   ZEND_ARG_INFO(0, aop)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(xaop_add_property_after_set_aop), 0, 0, 3)
+   ZEND_ARG_INFO(0, className)
+   ZEND_ARG_INFO(0, propertyName)
+   ZEND_ARG_INFO(0, aop)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(xaop_add_property_after_read_aop), 0, 0, 3)
+   ZEND_ARG_INFO(0, className)
+   ZEND_ARG_INFO(0, propertyName)
+   ZEND_ARG_INFO(0, aop)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(ARG_INFO(xaop_exec), 0, 0, 1)
    ZEND_ARG_INFO(0, xaopExec)
 ZEND_END_ARG_INFO()
@@ -197,7 +221,90 @@ XAOP_METHOD(Xaop, addAroundAop)
     add_next_index_zval(&XAOP_G(around_aops), &retval);
 }/*}}}*/
 
+/**
+ * {{{ proto Xaop::addPropertyBeforeAop($className, $propertyName, $aop)
+ * [ 'class' => 'xx', 'prop' => 'xx', 'aop' => (zval *), 'type' => xx ]
+ */
+XAOP_METHOD(Xaop, addPropertyBeforeReadAop)
+{
+    DCL_PROPERTY_PARAMS
+    SAVE_PROPERTY_PARAMS_ZPP();
+    CHECK_PROPERTY_PARAMS();
+    
+    zval retval;
+    array_init(&retval);
+    add_assoc_str(&retval, "class", class_name );
+    add_assoc_str(&retval, "prop", property_name );
+    Z_TRY_ADDREF_P(aop);
+    add_assoc_zval(&retval, "aop", aop );
+    add_assoc_long(&retval, "type", PROPERTY_BEFORE_READ_AOP );
+    
+    add_next_index_zval(&XAOP_G(property_aops), &retval );
+}/*}}}*/
 
+/**
+ * {{{ proto Xaop::addPropertyBeforeAop($className, $propertyName, $aop)
+ * [ 'class' => 'xx', 'prop' => 'xx', 'aop' => (zval *), 'type' => xx ]
+ */
+XAOP_METHOD(Xaop, addPropertyBeforeSetAop)
+{
+    DCL_PROPERTY_PARAMS
+    SAVE_PROPERTY_PARAMS_ZPP();
+    CHECK_PROPERTY_PARAMS();
+    
+    zval retval;
+    array_init(&retval);
+    add_assoc_str(&retval, "class", class_name );
+    add_assoc_str(&retval, "prop", property_name );
+    Z_TRY_ADDREF_P(aop);
+    add_assoc_zval(&retval, "aop", aop );
+    add_assoc_long(&retval, "type", PROPERTY_BEFORE_SET_AOP );
+    
+    add_next_index_zval(&XAOP_G(property_aops), &retval );
+}/*}}}*/
+
+/**
+ * {{{ proto Xaop::addPropertyAfterReadAop($className, $propertyName, $aop)
+ */
+XAOP_METHOD(Xaop, addPropertyAfterReadAop)
+{
+    DCL_PROPERTY_PARAMS
+    SAVE_PROPERTY_PARAMS_ZPP();
+    CHECK_PROPERTY_PARAMS();
+    
+    zval retval;
+    array_init(&retval);
+    add_assoc_str(&retval, "class", class_name );
+    add_assoc_str(&retval, "prop", property_name );
+    Z_TRY_ADDREF_P(aop);
+    add_assoc_zval(&retval, "aop", aop );
+    add_assoc_long(&retval, "type", PROPERTY_AFTER_READ_AOP );
+    
+    add_next_index_zval(&XAOP_G(property_aops), &retval );
+}/*}}}*/
+
+/**
+ * {{{ proto Xaop::addPropertyAfterSetAop($className, $propertyName, $aop)
+ */
+XAOP_METHOD(Xaop, addPropertyAfterSetAop)
+{
+    DCL_PROPERTY_PARAMS
+    SAVE_PROPERTY_PARAMS_ZPP();
+    CHECK_PROPERTY_PARAMS();
+    
+    zval retval;
+    array_init(&retval);
+    add_assoc_str(&retval, "class", class_name );
+    add_assoc_str(&retval, "prop", property_name );
+    Z_TRY_ADDREF_P(aop);
+    add_assoc_zval(&retval, "aop", aop );
+    add_assoc_long(&retval, "type", PROPERTY_AFTER_SET_AOP );
+    
+    add_next_index_zval(&XAOP_G(property_aops), &retval );
+}/*}}}*/
+
+/**{{{ proto Xaop::exec($xaopExecResource)
+ * */
 XAOP_METHOD(Xaop, exec)
 {
     zval *xaop_exec;
@@ -214,18 +321,25 @@ XAOP_METHOD(Xaop, exec)
             execute_internal(exec, return_value);
         }
     }
-}
+}/*}}}*/
 
 /**
  * {{{ All functions for Xaop class
  */
 XAOP_FUNCTIONS(xaop)
-    XAOP_ME(Xaop, addBeforeAop, arginfo_xaop_add_before_aop, ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC )
-    XAOP_ME(Xaop, addAfterAop, arginfo_xaop_add_after_aop, ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC )
-    XAOP_ME(Xaop, addAroundAop, arginfo_xaop_add_around_aop, ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC )
-    XAOP_ME(Xaop, addAfterReturnAop, arginfo_xaop_add_after_return_aop, ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC )
-    XAOP_ME(Xaop, addAfterThrowAop, arginfo_xaop_add_after_throw_aop, ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC )
-    XAOP_ME(Xaop, exec, arginfo_xaop_exec, ZEND_ACC_FINAL | ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+    XAOP_ME(Xaop, addBeforeAop, arginfo_xaop_add_before_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addAfterAop, arginfo_xaop_add_after_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addAroundAop, arginfo_xaop_add_around_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addAfterReturnAop, arginfo_xaop_add_after_return_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addAfterThrowAop, arginfo_xaop_add_after_throw_aop, XAOP_FUNCTION_DEF )
+    
+    /* Below are some property aop join-point */
+    XAOP_ME(Xaop, addPropertyBeforeReadAop, arginfo_xaop_add_property_before_read_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addPropertyBeforeSetAop, arginfo_xaop_add_property_before_set_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addPropertyAfterReadAop, arginfo_xaop_add_property_after_read_aop, XAOP_FUNCTION_DEF )
+    XAOP_ME(Xaop, addPropertyAfterSetAop, arginfo_xaop_add_property_after_set_aop, XAOP_FUNCTION_DEF )
+    
+    XAOP_ME(Xaop, exec, arginfo_xaop_exec, XAOP_FUNCTION_DEF )
 XAOP_FUNCTIONS_END()
 /*}}}*/
 

@@ -39,6 +39,7 @@ int le_xaop;
 PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("xaop.aop_mode", "1", PHP_INI_ALL, OnUpdateLong, aop_mode, zend_xaop_globals, xaop_globals)
 	STD_PHP_INI_ENTRY("xaop.method_prefix", "", PHP_INI_ALL, OnUpdateString, method_prefix, zend_xaop_globals, xaop_globals)
+	STD_PHP_INI_ENTRY("xaop.property_aop", "1", PHP_INI_ALL, OnUpdateLong, property_aop, zend_xaop_globals, xaop_globals)
 PHP_INI_END()
 /* }}} */
 
@@ -54,6 +55,10 @@ PHP_FUNCTION(get_xaop_version)
 }
 /* }}} */
 
+/**
+ * {{{ proto get_aops($type)
+ * This function to get the method aop
+ */
 PHP_FUNCTION(get_aops)
 {
     zend_long type;
@@ -72,7 +77,7 @@ PHP_FUNCTION(get_aops)
     } else if ( type == 5 ) {
         ZVAL_COPY(return_value, &XAOP_G(around_aops));
     }
-}
+}/*}}}*/
 
 /* {{{ php_xaop_init_globals
  */
@@ -81,6 +86,7 @@ static void php_xaop_init_globals(zend_xaop_globals *xaop_globals)
 {
     xaop_globals->aop_mode = 1;
     xaop_globals->method_prefix="";
+    xaop_globals->property_aop = 1;
 }
 /* }}} */
 
@@ -92,8 +98,9 @@ PHP_MINIT_FUNCTION(xaop)
     le_xaop = zend_register_list_destructors_ex(NULL, NULL, "XaopExec", module_number);
     ZEND_INIT_MODULE_GLOBALS(xaop, php_xaop_init_globals, NULL);
     REGISTER_INI_ENTRIES();
-    
-    
+    std_object_handlers.write_property = xaop_property_aop_ex;
+    XAOP_G(std_reader) = std_object_handlers.read_property;
+    std_object_handlers.read_property  = xaop_read_property_aop_ex;
     annotation_init();
     doc_init();
     xaop_init();
@@ -140,6 +147,7 @@ PHP_RINIT_FUNCTION(xaop)
     array_init(&XAOP_G(after_return_aops));
     array_init(&XAOP_G(after_throw_aops));
     array_init(&XAOP_G(around_aops));
+    array_init(&XAOP_G(property_aops));
 	return SUCCESS;
 }
 /* }}} */
@@ -158,6 +166,7 @@ PHP_RSHUTDOWN_FUNCTION(xaop)
     zend_array_destroy(Z_ARRVAL(XAOP_G(after_return_aops)));
     zend_array_destroy(Z_ARRVAL(XAOP_G(after_throw_aops)));
     zend_array_destroy(Z_ARRVAL(XAOP_G(around_aops)));
+    zend_array_destroy(Z_ARRVAL(XAOP_G(property_aops)));
     return SUCCESS;
 }
 /* }}} */
