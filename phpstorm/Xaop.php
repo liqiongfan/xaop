@@ -117,13 +117,5 @@ class Xaop
     public static function addPropertyAfterSetAop($className, $propertyName, $aopCallback) {
 
     }
-    
-    /**
-     * To execute the around context
-     * @param Resource|mixed $xaopPropertyExec
-     */
-    public static function execProperty($xaopPropertyExec) {
-
-    }
 
 }
