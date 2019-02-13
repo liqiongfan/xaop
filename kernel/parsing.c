@@ -55,7 +55,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
             if ( !body_s ) body_s = pos;
         }
 
-        if ( *c_r == '\n' ) {
+        if ( *c_r == '\n' || ( *c_r == '\r' && *(c_r + 1) == '\n') ) {
 
             /* If current char is '\n' to find the next '\n' */
             for ( pos_e = pos + 1; pos_e < phpdoc_len; pos_e++, pos++ ) {
@@ -68,7 +68,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
                     if ( !l_s ) l_s = pos_e;
                 }
 
-                if ( *c_e == '\n' ) {
+                if ( *c_e == '\n' || ( *c_e == '\r' && *(c_r + 1) == '\n') ) {
                     if ( pos_e == l_s ) {
                         l_s = 0;
                         continue;
@@ -89,7 +89,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
     smart_str body = { 0 };
     smart_str_appendl(&body, ZSTR_VAL(phpdoc) + body_s, body_e >= body_s ? body_e - body_s : 0 );
     smart_str_0(&body);
-    xaop_method_with_3_char_params("preg_replace", ZSTR_VAL(body.s), "\n", "#\\n[ ]*\\**[ ]*#", &ret);
+    xaop_method_with_3_char_params("preg_replace", ZSTR_VAL(body.s), "\n", "#(\\n|\\r\\n)[ ]*\\**[ ]*#", &ret);
     smart_str_free(&body);
     add_assoc_stringl(result, "body", Z_STRVAL(ret) + 1, Z_STRLEN(ret) > 2 ? Z_STRLEN(ret) - 2 : Z_STRLEN(ret));
     zval_ptr_dtor(&ret);

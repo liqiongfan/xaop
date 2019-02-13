@@ -284,6 +284,7 @@ void xaop_injection_internal_ex( zend_execute_data *execute_data TSRMLS_DC, zval
                 IN_CLASS_SCOPE_END
             }
         }
+        
     }
     if ( 0 == XAOP_G(around_mode) ) {
         execute_internal( execute_data, return_value );
