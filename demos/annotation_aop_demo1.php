@@ -6,7 +6,7 @@
 class A
 {
 	/**
-	 * 	@api(	type =	"json"	, charset=utf-8)
+	 * 	@api(	type =	"json	"	, charset=utf-8)
 	 */
 	public function getJson() {
 		return [
@@ -15,5 +15,5 @@ class A
 	}
 }
 
-// var_dump( (new Xaop\Doc())->getFunctionDoc("A", "getJson") );
-(new A())->getJson();
+var_dump( (new Xaop\Doc())->getFunctionDoc("A", "getJson") );
+// (new A())->getJson();

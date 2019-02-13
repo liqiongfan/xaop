@@ -250,8 +250,10 @@ void parse_key_value(zend_string *str, zval *result)
             smart_str_appendl(&value, val + pos + 1, pos_len - pos - 1);
             smart_str_0(&value);
 
-            k = php_trim( key.s, ZEND_STRL(" \"\t"), 3);
-            v = php_trim( value.s, ZEND_STRL(" \"\t"), 3);
+            k = php_trim( key.s, ZEND_STRL(" \t"), 3);
+            v = php_trim( value.s, ZEND_STRL(" \t"), 3);
+            k = php_trim( k, ZEND_STRL("\""), 3);
+            v = php_trim( v, ZEND_STRL("\""), 3);
 
             add_assoc_string(result, ZSTR_VAL(k), ZSTR_VAL(v));
             
