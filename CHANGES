@@ -1,1 +1,2 @@
 -- Fix bug [#001] 2018-09-12 23:50:23 ZTS core-dump
+-- Fix bug [#002] 2019-02-13 10:43:00 ZTS segementation-fault

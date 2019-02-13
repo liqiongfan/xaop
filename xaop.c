@@ -94,12 +94,11 @@ static void php_xaop_init_globals(zend_xaop_globals *xaop_globals)
  */
 PHP_MINIT_FUNCTION(xaop)
 {
-	/* If you have INI entries, uncomment these lines */
-    le_xaop = zend_register_list_destructors_ex(NULL, NULL, "XaopExec", module_number);
     ZEND_INIT_MODULE_GLOBALS(xaop, php_xaop_init_globals, NULL);
     REGISTER_INI_ENTRIES();
+  /* If you have INI entries, uncomment these lines */
+    le_xaop = zend_register_list_destructors_ex(NULL, NULL, "XaopExec", module_number);
     std_object_handlers.write_property = xaop_property_aop_ex;
-    XAOP_G(std_reader) = std_object_handlers.read_property;
     std_object_handlers.read_property  = xaop_read_property_aop_ex;
     annotation_init();
     doc_init();

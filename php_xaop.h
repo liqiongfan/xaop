@@ -64,7 +64,6 @@ ZEND_BEGIN_MODULE_GLOBALS(xaop)
     int  overloaded;            /* overload mode or not 1: overload 0: normal */
     int  aop_mode;              /* The AOP mode for kernel use. 1: normal 2:annotation aop 3: method aop */
     char *method_prefix;        /* The AOP method start with will be excluded */
-    zend_object_read_property_t std_reader;
     int  property_aop;          /* The AOP about the property 1: disable 2 on */
     zval property_aops;         /* The property aop when property occur */
     
