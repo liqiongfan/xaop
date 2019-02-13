@@ -49,7 +49,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
 
         c_r = doc + pos;
 
-        if ( *c_r == '/' || *c_r == '*' || *c_r == ' ' ) {
+        if ( *c_r == '/' || *c_r == '*' || *c_r == ' ' || *c_r == '\t' ) {
             continue;
         } else {
             if ( !body_s ) body_s = pos;
@@ -62,7 +62,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
                 
                 c_e = doc + pos_e;
 
-                if ( *c_e == '*' || *c_e == ' ' ) {
+                if ( *c_e == '*' || *c_e == ' ' || *c_e == '\t') {
                     continue;
                 } else {
                     if ( !l_s ) l_s = pos_e;
@@ -89,7 +89,7 @@ void parse_phpdoc(zend_string *phpdoc, zval *result)
     smart_str body = { 0 };
     smart_str_appendl(&body, ZSTR_VAL(phpdoc) + body_s, body_e >= body_s ? body_e - body_s : 0 );
     smart_str_0(&body);
-    xaop_method_with_3_char_params("preg_replace", ZSTR_VAL(body.s), "\n", "#(\\n|\\r\\n)[ ]*\\**[ ]*#", &ret);
+    xaop_method_with_3_char_params("preg_replace", ZSTR_VAL(body.s), "\n", "#(\\n|\\r\\n)[ \\t]*\\**[ \\t]*#", &ret);
     smart_str_free(&body);
     add_assoc_stringl(result, "body", Z_STRVAL(ret) + 1, Z_STRLEN(ret) > 2 ? Z_STRLEN(ret) - 2 : Z_STRLEN(ret));
     zval_ptr_dtor(&ret);
@@ -176,7 +176,7 @@ void parse_line_phpdoc(zend_string *line_doc, zval *result, int *body_end_pos, i
 
     array_init(&line_result);
     parse_key_value_pairs(data.s, &line_result);
-    zend_string *t_name = php_trim(name.s, " ", sizeof(" "), 3);
+    zend_string *t_name = php_trim(name.s, ZEND_STRL(" "), 3);
     add_assoc_zval(result, ZSTR_VAL(t_name), &line_result);
     zend_string_release(t_name);
 
@@ -250,8 +250,8 @@ void parse_key_value(zend_string *str, zval *result)
             smart_str_appendl(&value, val + pos + 1, pos_len - pos - 1);
             smart_str_0(&value);
 
-            k = php_trim( key.s, " \"", sizeof(" \""), 3);
-            v = php_trim( value.s, " \"", sizeof(" \""), 3);
+            k = php_trim( key.s, ZEND_STRL(" \"\t"), 3);
+            v = php_trim( value.s, ZEND_STRL(" \"\t"), 3);
 
             add_assoc_string(result, ZSTR_VAL(k), ZSTR_VAL(v));
             
