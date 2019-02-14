@@ -132,13 +132,14 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_DC )
         } /* class annotations */
     } /* end for annotation mode */
     
+    ZVAL_UNDEF( &func_return );
     if ( NULL == EX( return_value ) ) {
         EX( return_value ) = &func_return;
     } else {
         ZVAL_NULL( &func_return );
     }
     execute_ex( execute_data );
-    if ( EX( return_value ) ) {
+    if ( EX( return_value ) && Z_TYPE_P(EX(return_value)) != IS_UNDEF ) {
         ZVAL_COPY( &func_return, EX( return_value ) );
     }
     
@@ -163,10 +164,24 @@ void xaop_annotation_ex( zend_execute_data *execute_data TSRMLS_DC )
         }
     }
     
-    if ( success_zval && ( Z_TYPE( func_return ) == IS_TRUE || Z_TYPE( func_return ) == IS_ARRAY ) ) {
+    /*if ( success_zval && ( Z_TYPE( func_return ) == IS_TRUE || Z_TYPE( func_return ) == IS_ARRAY ) ) {*/
+    /* #06: not null, not emtpy, or false, run the success callback. */
+    if ( success_zval 
+        && ( 
+            Z_TYPE( func_return ) != IS_NULL 
+            && Z_TYPE( func_return ) != IS_FALSE 
+            && ( Z_TYPE( func_return ) == IS_STRING && Z_STRLEN( func_return ) ) 
+        ) 
+    ) {
         invoke_kernel_aop_method( success_zval );
     }
-    else if ( failure_zval && ( Z_TYPE( func_return ) == IS_FALSE || Z_TYPE( func_return ) == IS_NULL ) ) {
+    else if ( failure_zval 
+        &&  ( 
+            Z_TYPE( func_return ) == IS_NULL 
+            || Z_TYPE( func_return ) == IS_FALSE 
+            || ( Z_TYPE( func_return ) == IS_STRING && !Z_STRLEN( func_return ) ) 
+        )
+    ) {
         invoke_kernel_aop_method( failure_zval );
     }
     

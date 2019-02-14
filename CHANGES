@@ -3,3 +3,5 @@
 -- Add Feature Annotation doc support Windows format
 -- Add Feature Annotation support \t char. or space char.
 -- Modify the PHP tip doc.
+-- @success doc run if function return value not empty string, not false or not null.
+-- @failure doc run if function return value were empty string, or false or null.
