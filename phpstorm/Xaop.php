@@ -1,12 +1,13 @@
 <?php
+
 /**
  * Powered by Xaop.
  * Xaop is an High performance PHP extension for WEB develop based on server such as Nginx/Apache
- * User can use, modify, copy Xan only when keep the explain words
- * https://www.supjos.cn All Rights Reserved.
- * License: BSD
+ * User can use, modify, copy Xan only when maintain the declare words
  * User: Josin
- * Date: 2018/9/16
+ * Date: 2018/9/10
+ * License: PHP License 3.x
+ * Contact: xeapplee@gmail.com or 774542602@qq.com
  */
 
 class Xaop
