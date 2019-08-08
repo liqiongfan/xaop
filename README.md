@@ -51,67 +51,84 @@ xaop.property_aop = 2
 
 ```php
 <?php
-    
-class Swing
+  
+class Xaop
 {
-    public function __get($name)
-    {
-        echo '__get<br>';
-    }
-
-
-    public function __set($name, $value)
-    {
-        echo '__set<br>';
-    }
-
+  public function beforeGetAction()
+  {
+    echo 'Before GET Action' . PHP_EOL;
+  }
+  
+  public function afterGetAction()
+  {
+    echo 'After GET Action' . PHP_EOL;
+  }
+  
+  public function getXaop()
+  {
+    echo 'getXaop method' . PHP_EOL;
+  }
 }
-
-// 注入前置AOP
-Xaop::addBeforeAop(Swing::class, "__get*", function(){
-    echo '__get*_before<br>';
-});
-
-// 注入后置AOP
-Xaop::addAfterAop(Swing::class, "__get*", function(){
-    echo '__get*_after<br>';
-});
-
-// 注入后置返回AOP(当方法返回不是null的内容后，此AOP生效)
-Xaop::addAfterReturnAop(Swing::class, "__get*", function(){
-    echo '__get*_after_return<br>';
-});
-
-// 注入后置抛出异常AOP(当方法抛出异常的时候，此AOP生效)
-Xaop::addAfterThrowAop(Swing::class, "__get*", function(){
-    echo '__get*_after_throw<br>';
-});
-
-// 注入环绕AOP(注意环绕AOP与其他的AOP不可同用，存在环绕AOP的情况下，一切以环绕AOP为准)
-//Xaop::addAroundAop(NULL, "__get*", function($exec){
-//    echo '_before<br>';
-//    var_dump(Xaop::exec($exec));
-//    echo '_after<br>';
-//});
 ```
+
+注意：添加AOP方法的第二个参数支持 `一个` 模糊关键字`*`来替代零个或者多个字符，使用多个 `*` 会造成匹配失败，AOP失效。
+
+**下面示例一个使用两种前置AOP的姿势(其他类型的AOP类似)：**
+
+- 闭包模式
 
 ```php
-<?php
-    
-$swing = new Swing();
-$swing->di;
-
-//输出结果如下
-__get*_before
-__get
-__get*_after
+Xaop::addBeforeAop(Xaop::class, "getXaop", function(){
+  echo 'Before';
+});
 ```
 
-**注意**
+- 类的方法模式，注意这里存在类的生成开销
+
+```php
+Xaop::addBeforeAop(Xaop::class, "getXaop", [Xaop::class, "beforeGetAction"]);
+```
+
+**[注意]：Xaop的环绕模式AOP仅在此模式下生效，文档注解模式不支持环绕模式AOP，环绕AOP的回调函数存在一个资源参数，表示原方法的OPCODE上下文，如果用户不执行 Xaop::exec($resOpCode)的话，那么就会自动丢失**
+
+- 闭包环绕AOP
+
+```php
+Xaop::addAroundAop(Xaop::class, "getXaop", function($resCode){
+  echo 'Before';
+  Xaop::exec($resCode); // 如果不执行本行代码，原始方法不执行，并且会丢失
+  echo 'After';
+});
+```
+
+- 类方法环绕AOP
+
+```php
+class Xaop
+{
+  public function actionBefore($resCode)
+  {
+    echo 'Before Code'. PHP_EOL;
+    Xaop::exec($resCode);
+    echo 'After Code' . PHP_EOL;
+  }
+  
+  public function getXaop()
+  {
+    echo 'getXaop' . PHP_EOL;
+  }
+}
+
+Xaop::addAroundAop(Xaop::class, "getXaop", [Xaop::class, "actionBefore"]);
+```
+
+**【注意】：如果同时指定了环绕AOP和其他的AOP，那么除了环绕AOP之外，其他的AOP都失效，以环绕AOP为准。**
+
+
 
 **Xaop** 支持 五种 **AOP** 模式，分别是 **前置AOP(addBeforeAop)**、**后置AOP(addAfterAop)**、**后置返回AOP(addAfterReturnAop)**、**后置异常AOP(addAfterThrowAop)**、**环绕AOP(addAroundAop)**
 
-其中 **环绕AOP** 跟其他的 **AOP** 互斥，如果存在环绕 **AOP** ，系统将会优先以 **环绕AOP** 模式处理，并且 **环绕AOP** 回调函数存在一个参数： **$xaopExec** 的一个资源表示当前的方法上下文，环绕AOP模式下，如果不在环绕AOP方法内，调用 ：``` Xaop::exec($xaopExec);``` 那么实际的方法将会丢失，不会调用，在环绕模式下，实际方法需要开发者自行调用，并且在同个回调方法内，调用多次 ```Xaop::exec($xaopExec);```，**仅生效一次**，重复调用无效。如：
+其中 **环绕AOP** 跟其他的 **AOP** 互斥，如果存在环绕 **AOP** ，系统将会优先以 **环绕AOP** 模式处理，并且 **环绕AOP** 回调函数存在一个参数： **$xaopExec** 的一个资源表示切入方法的上下文，环绕AOP模式下，如果不在环绕AOP方法内，调用 ：``` Xaop::exec($xaopExec);``` 那么实际的方法将会丢失，不会调用，在环绕模式下，实际方法需要开发者自行调用，并且在同个回调方法内，调用多次 ```Xaop::exec($xaopExec);```，**仅生效一次**，重复调用无效。如：
 
 ```php
 Xaop::addAroundAop(NULL, "__get*", function($exec){
